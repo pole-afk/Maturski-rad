@@ -1003,3 +1003,23 @@ resetBtn.style.backgroundColor = '#dc3545'; // Crvena pozadina (za reset)
   resetBtn.style.margin = '10px';             // Margina oko dugmeta
   resetBtn.style.transition = 'background-color 0.3s ease';
   resetBtn.style.marginLeft='1057px';
+  function applyResponsiveStyles() {
+  if (window.innerWidth <= 768) { // Za ekrane do 768px širine
+    resetBtn.style.marginLeft = 'auto'; // Ukloni fiksnu marginu
+    resetBtn.style.marginRight = 'auto';
+    resetBtn.style.width = '90%';
+    resetBtn.style.maxWidth = '300px';
+    resetBtn.style.fontSize = '14px';
+    resetBtn.style.padding = '8px 15px';
+    resetBtn.style.display = 'block'; // Omogućava centriranje sa margin: auto
+  } else { // Za veće ekrane
+    resetBtn.style.marginLeft = '1057px';
+    resetBtn.style.width = 'auto'; // Vrati na auto širinu
+    resetBtn.style.fontSize = '16px';
+    resetBtn.style.padding = '10px 20px';
+  }
+}
+// Pozovi funkciju prilikom učitavanja stranice
+window.addEventListener('load', applyResponsiveStyles);
+// Pozovi funkciju prilikom promene veličine prozora
+window.addEventListener('resize', applyResponsiveStyles);

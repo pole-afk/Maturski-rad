@@ -215,7 +215,7 @@ function postaviPocetneFigurice() {
     const polje = polja[igrac.pozicija];
     const figuricaEl = document.createElement('div');
     figuricaEl.className = `figurica igrac${igrac.id}`;
-    figuricaEl.innerText = ['🔴','🔵','🟢','🟡'][igrac.id - 1];
+    figuricaEl.innerText = ['🔴','🔵'][igrac.id - 1];
     polje.appendChild(figuricaEl);
   });
 }
@@ -1005,14 +1005,34 @@ if (kontroleDiv) {
   document.body.appendChild(resetBtn);
 }
 resetBtn.addEventListener('click', resetGame);
-resetBtn.style.backgroundColor = '#dc3545'; // Crvena pozadina (za reset)
-  resetBtn.style.color = 'white';             // Beli tekst
-  resetBtn.style.padding = '10px 20px';       // Unutrašnje popunjavanje
-  resetBtn.style.border = 'none';             // Bez okvira
-  resetBtn.style.borderRadius = '5px';        // Zaobljene ivice
-  resetBtn.style.cursor = 'pointer';          // Pokazivač miša
-  resetBtn.style.fontSize = '16px';           // Veličina fonta
-  resetBtn.style.fontWeight = 'bold';         // Podebljan tekst
-  resetBtn.style.margin = '10px';             // Margina oko dugmeta
-  resetBtn.style.transition = 'background-color 0.3s ease';
-  resetBtn.style.marginLeft='1057px';
+resetBtn.style.backgroundColor = '#dc3545';
+resetBtn.style.color = 'white';
+resetBtn.style.padding = '10px 20px';
+resetBtn.style.border = 'none';
+resetBtn.style.borderRadius = '5px';
+resetBtn.style.cursor = 'pointer';
+resetBtn.style.fontSize = '16px';
+resetBtn.style.fontWeight = 'bold';
+resetBtn.style.margin = '10px';
+resetBtn.style.transition = 'background-color 0.3s ease';
+resetBtn.style.marginLeft = '1057px';
+function applyResponsiveStyles() {
+  if (window.innerWidth <= 768) { // Za ekrane do 768px širine
+    resetBtn.style.marginLeft = 'auto'; // Ukloni fiksnu marginu
+    resetBtn.style.marginRight = 'auto';
+    resetBtn.style.width = '90%';
+    resetBtn.style.maxWidth = '300px';
+    resetBtn.style.fontSize = '14px';
+    resetBtn.style.padding = '8px 15px';
+    resetBtn.style.display = 'block'; // Omogućava centriranje sa margin: auto
+  } else { // Za veće ekrane
+    resetBtn.style.marginLeft = '1057px';
+    resetBtn.style.width = 'auto'; // Vrati na auto širinu
+    resetBtn.style.fontSize = '16px';
+    resetBtn.style.padding = '10px 20px';
+  }
+}
+// Pozovi funkciju prilikom učitavanja stranice
+window.addEventListener('load', applyResponsiveStyles);
+// Pozovi funkciju prilikom promene veličine prozora
+window.addEventListener('resize', applyResponsiveStyles);

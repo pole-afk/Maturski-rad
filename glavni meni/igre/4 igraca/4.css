@@ -1,12 +1,17 @@
 body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
- background-image: url('..//pozadina.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
- 
+  /* Osnovni stilovi za pozadinu (za desktop i veće ekrane) */
+  background-image: url('..//pozadina.png'); /* Pretpostavka: veća, kvalitetnija slika */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* Opciono: fiksira pozadinu tokom skrolovanja */
+}
+
+@media (max-width: 768px) {
+  body {
+    background-image: url('..//pozadina-mobile.png'); /* Manja, optimizovana slika za telefone */
+    /* Možeš zadržati ostala svojstva kao cover, center, no-repeat */
+  }
 }
 .main-container {
   display: flex;
