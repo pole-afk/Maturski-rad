@@ -1,0 +1,323 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-image: url('..//pozadina.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+ 
+}
+.main-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+  margin-top: 20px;
+  height: 100%;
+}
+#igrac1-info, #igrac2-info,#igrac3-info,#igrac4-info,#igrac5-info,#igrac6-info {
+  font-size: 14px;
+  line-height: 1.6;
+  min-width: 150px;
+}
+#igrac1-info
+{
+  margin-left: 50px;
+}
+.tabla-i-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+#panel {
+  text-align: center;
+  min-width: 300px;
+}
+
+#tabla {
+  display: grid;
+  grid-template-columns: repeat(11, 80px);  
+  grid-template-rows: repeat(11, 80px);
+  gap: 0;
+  border: 2px solid #000;
+  position: relative;
+  background: #fff;
+  
+}
+.polje {
+  border: 1px solid #333;
+  background-color: #f4f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  font-size: small;
+  word-wrap: break-word;
+    padding-top: 10px; 
+    
+  flex-direction: column;
+}
+.sredina {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: bold;
+  background-color: #fff;
+  border: 2px solid #000;
+  transform: rotate(45deg);
+  width: 320px;
+  height: 320px;
+  margin: auto;
+  z-index: 0;
+}
+.sredina span {
+  transform: rotate(-45deg);
+  padding: 5px;
+  display: block;
+  text-align: center;
+}
+.figurica {
+  font-size: 16px;
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  pointer-events: none;
+}
+.figurica.igrac1 {
+  color: red;
+  right: 2px;
+  font-size: 16px;
+  position: absolute;
+  top: 2px;  /* Premestili smo figurice ka vrhu */
+  right: 2px; /* Premestili smo figurice ka levoj strani */
+  pointer-events: none;
+
+}
+.figurica.igrac2 {
+  color: blue;
+  left: 2px;
+  font-size: 16px;
+  position: absolute;
+  top: 2px;  /* Premestili smo figurice ka vrhu */
+  left: 2px; /* Premestili smo figurice ka levoj strani */
+  pointer-events: none;
+
+}
+.figurica.igrac3 {
+  color: rgb(0, 255, 76);
+  left: 2px;
+  
+}
+.figurica.igrac4 {
+  color: rgb(255, 238, 0);
+  right: 2px;
+}
+.figurica.igrac5
+{
+  color: orange;
+  right: 55px;
+  bottom:2px;
+  position: absolute;
+  pointer-events: none;
+
+}
+.figurica.igrac6
+{
+  color:purple;
+  right: 55px;
+  top:2px;
+  position: absolute;
+  pointer-events: none;
+
+}
+.vlasnik1 { border: 3px solid red; }
+.vlasnik2 { border: 3px solid blue; }
+.vlasnik3 { border: 3px solid green; }
+.vlasnik4 { border: 3px solid yellow; }
+.vlasnik5 {border: 3px solid orange;}
+.vlasnik6{border: 3px solid purple;}
+.container {
+    display: grid;
+    place-items: center;
+    width: 250px;
+    padding: 60px 0 40px;
+    border-radius: 30px;
+    background: #eeeeee;
+    box-shadow: 0 0 20px rgba(0, 0, 0, .1);
+}
+
+
+.gradnja {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  font-size: 18px;
+  pointer-events: none;
+  z-index: 2;
+  white-space: nowrap;
+}
+.kockice-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Razmak između kockica */
+    height: 100%; /* Da container zauzme punu visinu sredine */
+}
+.kockice-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Razmak između kockica */
+    height: 100%; /* Da container zauzme punu visinu sredine */
+}
+
+.kockica {
+    width: 50px;
+    height: 50px;
+    border: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+    /* animation: rotiraj 0.5s forwards;  Uklanjamo početnu animaciju */
+}
+
+@keyframes rotiraj {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.kockica.zaustavljena {
+    animation: none !important; /* Uklanja animaciju */
+}
+.hipotekovano {
+  background-color: #ddd; /* Siva pozadina za hipotekovane */
+  opacity: 0.7;
+}
+.akcije
+{
+  display: flex;
+}
+.polje::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 10px;   
+}
+.polje.obojeno-desno::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 10px;
+    width: 10px; /* Širina trake */
+    height: 100%;
+    margin-left: 69px;
+}
+.polje.obojeno-levo::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 10px; /* Širina trake */
+    height: 100%;
+}
+.polje.obojeno-dole::before {
+    content: '';
+    position: absolute;
+    margin-top: 69px;
+    left: 0;
+    width: 100%; 
+    height: 10px; /
+}
+.polje[data-index="1"]::before,
+.polje[data-index="3"]::before {
+    background-color: brown;
+}
+
+/* Light Blue */
+.polje[data-index="6"]::before,
+.polje[data-index="8"]::before,
+.polje[data-index="9"]::before {
+    background-color: lightblue;
+}
+
+/* Pink */
+.polje[data-index="11"]::before,
+.polje[data-index="13"]::before,
+.polje[data-index="14"]::before {
+    background-color: pink;
+}
+
+/* Orange */
+.polje[data-index="16"]::before,
+.polje[data-index="18"]::before,
+.polje[data-index="19"]::before {
+    background-color: orange;
+}
+
+/* Red */
+.polje[data-index="21"]::before,
+.polje[data-index="23"]::before,
+.polje[data-index="24"]::before {
+    background-color: red;
+}
+
+/* Yellow */
+.polje[data-index="26"]::before,
+.polje[data-index="27"]::before,
+.polje[data-index="29"]::before {
+    background-color: yellow;
+}
+
+/* Green */
+.polje.obojeno-desno[data-index="31"]::before,
+.polje.obojeno-desno[data-index="32"]::before,
+.polje.obojeno-desno[data-index="34"]::before {
+    background-color: green;
+}
+
+/* Dark Blue */
+.polje.obojeno-desno[data-index="37"]::before,
+.polje.obojeno-desno[data-index="39"]::before {
+    background-color: darkblue;
+}
+
+/* Special properties (Utilities & Railroads) - Grey */
+.polje[data-index="5"]::before,
+.polje[data-index="12"]::before,
+.polje[data-index="15"]::before,
+.polje[data-index="25"]::before,
+.polje[data-index="28"]::before,
+.polje.obojeno-desno[data-index="35"]::before {
+    background-color: grey;
+}
+
+/* Start, Jail, Free Parking, Go to Jail - No color (or you can add a very subtle color) */
+.polje[data-index="0"]::before,
+.polje[data-index="10"]::before,
+.polje[data-index="20"]::before,
+.polje[data-index="30"]::before {
+    background-color: #f4f4f4; /* Same as .polje background */
+}
+@media (max-width: 768px) {
+  .tabla-i-panel {
+    align-items: center;
+  }
+
+  #tabla {
+    transform: scale(0.8); /* Ako tabla prelazi širinu ekrana */
+    transform-origin: top center;
+  }
+}
