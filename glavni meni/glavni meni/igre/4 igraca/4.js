@@ -4,7 +4,6 @@ const baciBtn = document.getElementById('baci-kockicu');
 const naPotezu = document.getElementById('na-potezu');
 const polja = document.querySelectorAll('.polje');
 let porez = 0;
-
 const cenePolja = [
   null,   // 0: Start - Ne kupuje se
   60,     // 1: Beograd
@@ -40,7 +39,7 @@ const cenePolja = [
   300,    // 31: Šabac 2
   300,    // 32: Svilajnac
   320,    // 33: Aerodrom
-  null,   // 34: Porez - Ne kupuje se (iz HTML-a, ali ako je Sombor onda 200) - Držim se HTML-a za sada
+  320,   // 34: Porez - Ne kupuje se (iz HTML-a, ali ako je Sombor onda 200) - Držim se HTML-a za sada
   200,    // 35: Stanica
   null,   // 36: Šansa - Ne kupuje se
   350,    // 37: Pirot
@@ -173,15 +172,15 @@ const hipotekeCene = [
   null,   // 38: Porez
   200     // 39: Jovac
 ];
-
 const zeleznice = [5, 15, 25, 35];
 const komunalije = [12, 28];
 const porezi = [4, 38];
 
 const figurice = [
-  { id: 1, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
-  { id: 2, pozicija: 0, novac: 1500, posedi: [], uZatvor: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
-  { id: 3, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true }
+  { id: 1, pozicija: 0, novac: -1, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
+  { id: 2, pozicija: 0, novac: -1, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
+  { id: 3, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
+  { id: 4, pozicija: 0, novac: -1, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true }
 ];
 
 let trenutniIgrac = 0;
@@ -309,6 +308,7 @@ function pomeriIgracaAnimirano(koraci, dupli, callback) {
       else nakonPomeranja(dupli);
     }
   }, 250);
+  sacuvajStanje()
 }
 
 function nakonPomeranja(dupli) {
@@ -357,6 +357,7 @@ function nakonPomeranja(dupli) {
     azurirajPrikaz();
     // Ako je tvoje polje, ili polje koje ne izaziva akciju, idi na sledeceg igraca
   }
+  sacuvajStanje()
 }
 
 function izvuciSansu(dupli) {
@@ -420,6 +421,7 @@ function obradiPorez(index) {
   porez += 150;
   azurirajPrikaz();
   sledeciIgrac();
+  sacuvajStanje();
 }
 
 function obradiRentu(index) {
@@ -627,6 +629,7 @@ function pokreniProdajuImovine(igrac, iznos, callback) {
       pokreniProdajuImovine(igrac, iznos, callback);
     }
   }
+  sacuvajStanje()
 }
 
 function igracImaSvaPoljaGrupe(index, igracId) {
@@ -671,6 +674,7 @@ function azurirajPrikaz() {
     if (hipoteke[index]) polje.classList.add('hipotekovano');
     prikaziKucu(index);
   });
+  sacuvajStanje()
 }
 
 function hipotekaPolje() {
@@ -730,6 +734,7 @@ document.getElementById('kupi-polje').addEventListener('click', () => {
       sledeciIgrac();
     }
   }
+  sacuvajStanje()
 });
 
 document.getElementById('preskoci-kupovinu').addEventListener('click', () => {
@@ -742,6 +747,7 @@ document.getElementById('preskoci-kupovinu').addEventListener('click', () => {
       sledeciIgrac();
     }
   }
+  sacuvajStanje()
 });
 
 document.getElementById('baci-kockicu').addEventListener('click', baciKockice);
@@ -773,6 +779,7 @@ document.getElementById('izgradi').addEventListener('click', () => {
   } else {
     alert("Ne možeš graditi kuću na ovom polju!");
   }
+  sacuvajStanje()
 });
 
 document.getElementById('hipoteka').addEventListener('click', hipotekaPolje);
@@ -794,8 +801,38 @@ function sledeciIgrac() {
 
   const aktivni = figurice.filter(i => i.aktivan);
   if (aktivni.length === 1) {
-    alert(`Igra je završena! Pobednik je Igrač ${aktivni[0].id} 🎉`);
-    location.reload();
+    const pobednik = aktivni[0];
+    const pobednickiPoeni = pobednik.novac + pobednik.posedi.reduce((sum, index) => {
+        let vrednostPolja = cenePolja[index] || 0;
+        if (kuce[index] > 0) {
+            // Dodajte vrednost kuća (ovde pretpostavljamo cenu izgradnje po kući)
+            vrednostPolja += kuce[index] * 150; // Pretpostavimo da je cena kuće 150$
+        }
+        if (hipoteke[index]) {
+            // Ako je pod hipotekom, vredi pola hipoteke (ili kupovne cene)
+            vrednostPolja = hipotekeCene[index] || (cenePolja[index] / 2);
+        }
+        return sum + vrednostPolja;
+    }, 0);
+
+    const gameDate = new Date().toLocaleDateString('sr-RS');
+
+    const newResult = {
+    player: `Igrač ${pobednik.id}`,
+    date: gameDate,
+    score: pobednickiPoeni,
+    gameType: "4 igrača" 
+};
+
+    
+    let allResults = JSON.parse(localStorage.getItem('gameResults')) || [];
+    allResults.push(newResult);
+    localStorage.setItem('gameResults', JSON.stringify(allResults));
+
+    alert(`Igra je završena! Pobednik je ${newResult.player} sa ${newResult.score}$ 🎉`);
+    resetGame();
+    
+    window.location.href = '../../glavni-meni.html';
     return;
   }
 
@@ -807,29 +844,7 @@ function sledeciIgrac() {
   bacanjeDozvoljeno = true;
   kockica1.classList.remove('zaustavljena');
   kockica2.classList.remove('zaustavljena');
-}
-function saveWinnerScore(winnerId, finalMoney) {
-    // Učitajte postojeće rezultate
-    const existingScores = JSON.parse(localStorage.getItem('monopolyLeaderboard')) || [];
-
-    // Dodajte novi rezultat
-    existingScores.push({
-        player: `Igrač ${winnerId}`,
-        score: finalMoney,
-        date: new Date().toLocaleDateString('sr-RS') // Formatirajte datum po potrebi
-    });
-
-    // Opcionalno: Sortirajte rezultate od najvećeg ka najmanjem
-    existingScores.sort((a, b) => b.score - a.score);
-
-    // Opcionalno: Ograničite broj sačuvanih rezultata (npr. top 10)
-    const MAX_LEADERBOARD_ENTRIES = 10;
-    if (existingScores.length > MAX_LEADERBOARD_ENTRIES) {
-        existingScores.splice(MAX_LEADERBOARD_ENTRIES);
-    }
-
-    // Sačuvajte ažurirane rezultate u localStorage
-    localStorage.setItem('monopolyLeaderboard', JSON.stringify(existingScores));
+  sacuvajStanje(); // Sačuvaj stanje igre nakon svake promene igrača
 }
 function pokreniAukciju(poljaZaProdaju) {
   const aktivniIgraci = figurice.filter(i => i.aktivan && i.id !== figurice[trenutniIgrac].id);

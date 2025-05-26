@@ -1,6 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     const leaderboardBody = document.getElementById('leaderboard-body');
+        const scoreCell = row.insertCell();
 
+// Prikazivanje poena sa znakom dolara (primer)
+scoreCell.textContent = result.score + ' $'; // Dodao sam ' $' na kraj za lepši prikaz
+
+// Dodavanje klase za stilizovanje samo poena
+scoreCell.classList.add('score-value');
     // Funkcija za učitavanje i prikazivanje rezultata
     function displayLeaderboard() {
         const scores = JSON.parse(localStorage.getItem('monopolyLeaderboard')) || [];

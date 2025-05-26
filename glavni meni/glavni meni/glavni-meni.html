@@ -17,7 +17,10 @@
     <table>
         <tr>
             <th>Igrac</th>
+            <th>Datum</th>
             <th>Rezultat</th>
+            <th>Vrsta igre</th>
+            <th>Akcije</th> </tr>
         </tr>
         <tbody id="leaderboard-body">
             </tbody>
@@ -25,6 +28,73 @@
 </div>             
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="record-holder.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    const leaderboardBody = document.getElementById('leaderboard-body');
+    // const clearButton = document.getElementById('clear-leaderboard'); // Nema potrebe za ovim dugmetom ako brišete pojedinačno
+
+    function displayResults() {
+        let results = JSON.parse(localStorage.getItem('gameResults')) || [];
+        results.sort((a, b) => b.score - a.score);
+        leaderboardBody.innerHTML = '';
+
+        results.forEach((result, index) => {
+            const row = leaderboardBody.insertRow();
+            // Postavite data-index atribut na red za lakše brisanje
+            row.setAttribute('data-index', index); // Ovo nam treba za identifikaciju
+
+            const playerCell = row.insertCell();
+            const dateCell = row.insertCell();
+            const scoreCell = row.insertCell();
+            const gameTypeCell = row.insertCell();
+            const actionCell = row.insertCell(); // NOVA ĆELIJA ZA DUGME
+
+            playerCell.textContent = result.player;
+            dateCell.textContent = result.date;
+            scoreCell.textContent = result.score + ' $';
+            scoreCell.classList.add('score-value');
+            if (result.score >= 2000) {
+                scoreCell.classList.add('score-high');
+            } else if (result.score >= 1000) {
+                scoreCell.classList.add('score-medium');
+            } else {
+                scoreCell.classList.add('score-low');
+            }
+            gameTypeCell.textContent = result.gameType || 'Nepoznata';
+            gameTypeCell.classList.add('game-type-cell');
+
+            // Kreiranje dugmeta za brisanje
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Obriši';
+            deleteButton.classList.add('delete-button'); // Dodajte klasu za stilizovanje
+            
+            // Dodajte event listener za dugme
+            deleteButton.addEventListener('click', () => {
+                // `index` ovde zatvara vrednost indeksa rezultata u originalnom `results` nizu
+                deleteResult(index); 
+            });
+            actionCell.appendChild(deleteButton); // Dodajte dugme u ćeliju
+        });
+    }
+
+    // Funkcija za brisanje pojedinačnog rezultata
+    function deleteResult(indexToDelete) {
+        if (confirm('Da li ste sigurni da želite da obrišete ovaj rezultat?')) {
+            let results = JSON.parse(localStorage.getItem('gameResults')) || [];
+            // Uklanjanje rezultata po indeksu
+            results.splice(indexToDelete, 1); // splice(start_index, how_many_to_remove)
+
+            localStorage.setItem('gameResults', JSON.stringify(results)); // Sačuvajte ažurirani niz
+            displayResults(); // Ponovo prikažite tabelu
+            alert('Rezultat je obrisan.');
+        }
+    }
+
+    displayResults(); // Inicijalni prikaz
+
+    // Ako imate i dugme za brisanje SVIH rezultata, njegov kod bi išao ovde.
+    // Npr. clearButton.addEventListener('click', ...);
+});
+    </script>
 </body>
 </html>

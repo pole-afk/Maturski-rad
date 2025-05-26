@@ -1,0 +1,158 @@
+    <!DOCTYPE html>
+    <html lang="sr">
+    <head>
+        <meta charset="UTF-8">
+        <title>Monopoly</title>
+        <link rel="stylesheet" href="4.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container-fluid">
+  <div class="row justify-content-center text-center">
+
+    <!-- Leva kolona (igraci 1 i 4) -->
+    <div class="col-lg-2 col-md-3 col-12 mb-3">
+      <div id="igrac1-info">
+        <p><strong style="color: red;">🔴 Igrač 1</strong></p>
+        <p>Novac: <span class="novac">1500</span>$</p>
+        <p>Polja: <span class="polja"></span></p>
+      </div>
+      <div id="igrac4-info">
+        <p><strong style="color: rgb(255, 230, 0);">🟡 Igrač 4</strong></p>
+        <p>Novac: <span class="novac">1500</span>$</p>
+        <p>Polja: <span class="polja"></span></p>
+      </div>
+    </div>
+
+    <!-- Sredina: Tabla + Panel -->
+    <div class="col-lg-8 col-md-6 col-12 mb-3 tabla-i-panel">
+      <div id="panel">
+        <button id="baci-kockicu" class="btn btn-primary mb-2">🎲 Baci kockicu</button>
+        <div id="na-potezu">Na potezu: Igrač 1 (🔴)</div>
+
+        <div id="akcije" class="d-flex flex-wrap justify-content-center gap-2 mt-2" style="display: none;">
+          <button id="kupi-polje" class="btn btn-success">Kupi $</button>
+          <button id="preskoci-kupovinu" class="btn btn-secondary">Preskoči >></button>
+          <button id="izgradi" class="btn btn-warning">Izgradi kuću</button>
+          <button id="hipoteka" class="btn btn-danger">Hipoteka</button>
+          <button id="odglavi" class="btn btn-info">Otplaćivanje hipoteke</button>
+        </div>
+      </div>
+
+      <div id="tabla">
+                    <!-- Donja ivica (0-10) -->
+                    <div class="polje" data-index="0"  style="grid-column: 1; grid-row: 11;"><div class="naziv-polja">Start</div>
+            <div class="cena-polja">-</div></div>
+                    <div class="polje" data-index="1"  style="grid-column: 2; grid-row: 11;"><div class="naziv-polja">Beograd</div>
+    <div class="cena-polja">60$</div></div>
+                    <div class="polje" data-index="2"  style="grid-column: 3; grid-row: 11;"><div class="naziv-polja">Šansa</div>
+    <div class="cena-polja">-</div></div>
+                    <div class="polje" data-index="3"  style="grid-column: 4; grid-row: 11;"> <div class="naziv-polja">Novi Sad</div>
+    <div class="cena-polja">60$</div></div>
+                    <div class="polje" data-index="4"  style="grid-column: 5; grid-row: 11;"><div class="naziv-polja">Porez</div>
+    <div class="cena-polja">-150$</div></div>
+                    <div class="polje" data-index="5"  style="grid-column: 6; grid-row: 11;"> <div class="naziv-polja">Stanica</div>
+    <div class="cena-polja">200$</div></div>
+                    <div class="polje" data-index="6"  style="grid-column: 7; grid-row: 11;"><div class="naziv-polja">Niš</div>
+    <div class="cena-polja">100$</div></div>
+                    <div class="polje" data-index="7"  style="grid-column: 8; grid-row: 11;"><div class="naziv-polja">Zajednica</div>
+    <div class="cena-polja">-</div></div>
+                    <div class="polje" data-index="8"  style="grid-column: 9; grid-row: 11;"><div class="naziv-polja">Subotica</div>
+    <div class="cena-polja">100$</div></div>
+                    <div class="polje" data-index="9"  style="grid-column: 10; grid-row: 11;"><div class="naziv-polja">Palic</div>
+    <div class="cena-polja">120$</div></div>
+                    <div class="polje" data-index="10" style="grid-column: 11; grid-row: 11;"><div class="naziv-polja">Zatvor</div>
+    <div class="cena-polja">-</div></div>
+                    <!-- Desna ivica (11-20) -->
+                    <div class="polje obojeno-levo" data-index="11" style="grid-column: 11; grid-row: 10;"><div class="naziv-polja">Kragujevac</div>
+    <div class="cena-polja">140$</div></div>
+                    <div class="polje obojeno-levo" data-index="12" style="grid-column: 11; grid-row: 9;"><div class="naziv-polja">EPS</div>
+    <div class="cena-polja">150$</div></div>
+                    <div class="polje obojeno-levo" data-index="13" style="grid-column: 11; grid-row: 8;"><div class="naziv-polja">Čačak</div>
+    <div class="cena-polja">140$</div></div>
+                    <div class="polje obojeno-levo" data-index="14" style="grid-column: 11; grid-row: 7;"><div class="naziv-polja">Kraljevo</div>
+    <div class="cena-polja">160$</div></div>
+                    <div class="polje obojeno-levo" data-index="15" style="grid-column: 11; grid-row: 6;"><div class="naziv-polja">Stanica</div>
+    <div class="cena-polja">200$</div></div>
+                    <div class="polje obojeno-levo" data-index="16" style="grid-column: 11; grid-row: 5;"><div class="naziv-polja">Šabac</div>
+    <div class="cena-polja">180$</div></div>
+                    <div class="polje obojeno-levo" data-index="17" style="grid-column: 11; grid-row: 4;"><div class="naziv-polja">Zajednica</div>
+    <div class="cena-polja">-</div></div>
+                    <div class="polje obojeno-levo" data-index="18" style="grid-column: 11; grid-row: 3;"><div class="naziv-polja">Pančevo</div>
+    <div class="cena-polja">180$</div></div>
+                    <div class="polje obojeno-levo" data-index="19" style="grid-column: 11; grid-row: 2;"><div class="naziv-polja">Zrenjanin</div>
+    <div class="cena-polja">200$</div></div>
+                    <div class="polje" data-index="20" style="grid-column: 11; grid-row: 1;"><div class="naziv-polja">Besplatan parking</div>
+    <div class="cena-polja">-</div></div>
+                    <!-- Gornja ivica (21-30) -->
+                    <div class="polje obojeno-dole" data-index="21" style="grid-column: 10; grid-row: 1;"><div class="naziv-polja">Užice</div>
+    <div class="cena-polja">220$</div></div>
+                    <div class="polje obojeno-dole" data-index="22" style="grid-column: 9; grid-row: 1;"><div class="naziv-polja">Šansa</div>
+    <div class="cena-polja">-</div></div>
+                    <div class="polje obojeno-dole" data-index="23" style="grid-column: 8; grid-row: 1;"><div class="naziv-polja">Valjevo</div>
+    <div class="cena-polja">220$</div></div>
+                    <div class="polje obojeno-dole" data-index="24" style="grid-column: 7; grid-row: 1;"><div class="naziv-polja">Loznica</div>
+    <div class="cena-polja">240$</div></div>
+                    <div class="polje obojeno-dole" data-index="25" style="grid-column: 6; grid-row: 1;"><div class="naziv-polja">Stanica</div>
+    <div class="cena-polja">200$</div></div>
+                    <div class="polje obojeno-dole" data-index="26" style="grid-column: 5; grid-row: 1;"><div class="naziv-polja">Požarevac</div>
+    <div class="cena-polja">260$</div></div>
+                    <div class="polje obojeno-dole" data-index="27" style="grid-column: 4; grid-row: 1;"><div class="naziv-polja">Smederevo</div>
+    <div class="cena-polja">260$</div></div>
+                    <div class="polje obojeno-dole" data-index="28" style="grid-column: 3; grid-row: 1;"><div class="naziv-polja">Vodovod </div>
+    <div class="cena-polja">150$</div></div>
+                    <div class="polje obojeno-dole" data-index="29" style="grid-column: 2; grid-row: 1;"><div class="naziv-polja">Sremska Mitrovica</div>
+    <div class="cena-polja">280$</div></div>
+                    <div class="polje" data-index="30" style="grid-column: 1; grid-row: 1;"><div class="naziv-polja">Idi u zatvor</div>
+    <div class="cena-polja">-</div></div>
+                    <!-- Leva ivica (31-39) -->
+                    <div class="polje obojeno-desno" data-index="31" style="grid-column: 1; grid-row: 2;"><div class="naziv-polja">Šabac 2</div>
+    <div class="cena-polja">300$</div></div>
+                    <div class="polje obojeno-desno" data-index="32" style="grid-column: 1; grid-row: 3;"><div class="naziv-polja">Svilajnac</div>
+    <div class="cena-polja">300$</div></div>
+                    <div class="polje obojeno-desno" data-index="33" style="grid-column: 1; grid-row: 4;"><div class="naziv-polja">Aerodrom</div>
+    <div class="cena-polja">320$</div></div>
+                    <div class="polje obojeno-desno" data-index="34" style="grid-column: 1; grid-row: 5;"><div class="naziv-polja">Sombor</div>
+    <div class="cena-polja">320$</div></div>
+                    <div class="polje obojeno-desno" data-index="35" style="grid-column: 1; grid-row: 6;"><div class="naziv-polja">Stanica</div>
+    <div class="cena-polja">200$</div></div>
+                    <div class="polje obojeno-desno" data-index="36" style="grid-column: 1; grid-row: 7;"><div class="naziv-polja">Šansa</div>
+    <div class="cena-polja">-</div></div>
+                    <div class="polje obojeno-desno" data-index="37" style="grid-column: 1; grid-row: 8;"><div class="naziv-polja">Pirot</div>
+    <div class="cena-polja">350$</div></div>
+                    <div class="polje obojeno-desno" data-index="38" style="grid-column: 1; grid-row: 9;"><div class="naziv-polja">Porez</div>
+    <div class="cena-polja">-150$</div></div>
+                    <div class="polje obojeno-desno" data-index="39" style="grid-column: 1; grid-row: 10;"><div class="naziv-polja">Jovac</div>
+    <div class="cena-polja">400$</div></div>
+                    
+                    <div class="sredina" style="grid-column: 3 / span 7; grid-row: 3 / span 7;">
+                            <div class="kockice-container">
+                                <div class="kockica" id="kockica1">0</div>
+                                <div class="kockica" id="kockica2">0</div>
+                            </div>
+                        <div>
+                </div>
+                    </div>
+                </div>
+    </div>
+
+    <!-- Desna kolona (igraci 2 i 3) -->
+    <div class="col-lg-2 col-md-3 col-12 mb-3">
+      <div id="igrac2-info">
+        <p><strong style="color: blue;">🔵 Igrač 2</strong></p>
+        <p>Novac: <span class="novac">1500</span>$</p>
+        <p>Polja: <span class="polja"></span></p>
+      </div>
+      <div id="igrac3-info">
+        <p><strong style="color: rgb(0, 255, 55);">🟢 Igrač 3</strong></p>
+        <p>Novac: <span class="novac">1500</span>$</p>
+        <p>Polja: <span class="polja"></span></p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+        <script src="4.js"></script>
+    </body>
+    </html>

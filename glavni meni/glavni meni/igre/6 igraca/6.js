@@ -4,7 +4,6 @@ const baciBtn = document.getElementById('baci-kockicu');
 const naPotezu = document.getElementById('na-potezu');
 const polja = document.querySelectorAll('.polje');
 let porez = 0;
-
 const cenePolja = [
   null,   // 0: Start - Ne kupuje se
   60,     // 1: Beograd
@@ -40,7 +39,7 @@ const cenePolja = [
   300,    // 31: Šabac 2
   300,    // 32: Svilajnac
   320,    // 33: Aerodrom
-  null,   // 34: Porez - Ne kupuje se (iz HTML-a, ali ako je Sombor onda 200) - Držim se HTML-a za sada
+  320,   // 34: Porez - Ne kupuje se (iz HTML-a, ali ako je Sombor onda 200) - Držim se HTML-a za sada
   200,    // 35: Stanica
   null,   // 36: Šansa - Ne kupuje se
   350,    // 37: Pirot
@@ -173,23 +172,17 @@ const hipotekeCene = [
   null,   // 38: Porez
   200     // 39: Jovac
 ];
-const bojePolja = [
-  [1, 3],          // Braon: Beograd, Novi Sad
-  [6, 8, 9],       // Svetloplava: Niš, Subotica, Palić
-  [11, 13, 14],    // Pink: Kragujevac, Čačak, Kraljevo
-  [16, 18, 19],    // Narandžasta: Šabac, Pančevo, Zrenjanin
-  [21, 23, 24],    // Crvena: Užice, Valjevo, Loznica
-  [26, 27, 29],    // Žuta: Požarevac, Smederevo, Sremska Mitrovica
-  [31, 32, 33],    // Zelena: Šabac 2, Svilajnac, Aerodrom
-  [37, 39]         // Tamnoplava: Pirot, Jovac
-];
 const zeleznice = [5, 15, 25, 35];
 const komunalije = [12, 28];
 const porezi = [4, 38];
 
 const figurice = [
   { id: 1, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
-  { id: 2, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true }
+  { id: 2, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
+  { id: 3, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
+  { id: 4, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
+  { id: 5, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
+  { id: 6, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true }
 ];
 
 let trenutniIgrac = 0;
@@ -206,7 +199,10 @@ const sansa = [
   "Karta za izlazak iz zatvora"
 ];
 
-
+const bojePolja = [
+  [1, 3], [6, 8, 9], [11, 13, 14], [16, 18, 19],
+  [21, 23, 24], [26, 27, 29], [31, 32, 34], [37, 39]
+];
 
 let bacanjeDozvoljeno = true;
 
@@ -215,7 +211,7 @@ function postaviPocetneFigurice() {
     const polje = polja[igrac.pozicija];
     const figuricaEl = document.createElement('div');
     figuricaEl.className = `figurica igrac${igrac.id}`;
-    figuricaEl.innerText = ['🔴','🔵'][igrac.id - 1];
+    figuricaEl.innerText = ['🔴','🔵','🟢','🟡','🟠','🟣'][igrac.id - 1];
     polje.appendChild(figuricaEl);
   });
 }
@@ -303,7 +299,7 @@ function pomeriIgracaAnimirano(koraci, dupli, callback) {
     const polje = polja[igrac.pozicija];
     const figuricaEl = document.createElement('div');
     figuricaEl.className = `figurica igrac${igrac.id}`;
-    figuricaEl.innerText = ['🔴','🔵','🟢','🟡'][igrac.id - 1];
+    figuricaEl.innerText = ['🔴','🔵','🟢','🟡','🟠','🟣'][igrac.id - 1];
     polje.appendChild(figuricaEl);
 
     pomeranja++;
@@ -314,6 +310,7 @@ function pomeriIgracaAnimirano(koraci, dupli, callback) {
       else nakonPomeranja(dupli);
     }
   }, 250);
+  sacuvajStanje()
 }
 
 function nakonPomeranja(dupli) {
@@ -362,6 +359,7 @@ function nakonPomeranja(dupli) {
     azurirajPrikaz();
     // Ako je tvoje polje, ili polje koje ne izaziva akciju, idi na sledeceg igraca
   }
+  sacuvajStanje()
 }
 
 function izvuciSansu(dupli) {
@@ -425,6 +423,7 @@ function obradiPorez(index) {
   porez += 150;
   azurirajPrikaz();
   sledeciIgrac();
+  sacuvajStanje();
 }
 
 function obradiRentu(index) {
@@ -677,6 +676,7 @@ function azurirajPrikaz() {
     if (hipoteke[index]) polje.classList.add('hipotekovano');
     prikaziKucu(index);
   });
+  sacuvajStanje()
 }
 
 function hipotekaPolje() {
@@ -691,7 +691,6 @@ function hipotekaPolje() {
   } else {
     alert("Ne možeš hipotekovati ovo polje.");
   }
-sacuvajStanje()
 }
 
 function odglaviPolje() {
@@ -711,7 +710,6 @@ function odglaviPolje() {
   } else {
     alert("Ne možeš odglaviti ovo polje.");
   }
-  sacuvajStanje()
 }
 
 document.getElementById('kupi-polje').addEventListener('click', () => {
@@ -751,6 +749,7 @@ document.getElementById('preskoci-kupovinu').addEventListener('click', () => {
       sledeciIgrac();
     }
   }
+  sacuvajStanje()
 });
 
 document.getElementById('baci-kockicu').addEventListener('click', baciKockice);
@@ -807,6 +806,7 @@ function sledeciIgrac() {
     alert(`Igra je završena! Pobednik je Igrač ${aktivni[0].id} 🎉`);
     location.reload();
     return;
+    sacuvajStanje()
   }
 
   do {
@@ -817,30 +817,6 @@ function sledeciIgrac() {
   bacanjeDozvoljeno = true;
   kockica1.classList.remove('zaustavljena');
   kockica2.classList.remove('zaustavljena');
-  sacuvajStanje()
-}
-function saveWinnerScore(winnerId, finalMoney) {
-    // Učitajte postojeće rezultate
-    const existingScores = JSON.parse(localStorage.getItem('monopolyLeaderboard')) || [];
-
-    // Dodajte novi rezultat
-    existingScores.push({
-        player: `Igrač ${winnerId}`,
-        score: finalMoney,
-        date: new Date().toLocaleDateString('sr-RS') // Formatirajte datum po potrebi
-    });
-
-    // Opcionalno: Sortirajte rezultate od najvećeg ka najmanjem
-    existingScores.sort((a, b) => b.score - a.score);
-
-    // Opcionalno: Ograničite broj sačuvanih rezultata (npr. top 10)
-    const MAX_LEADERBOARD_ENTRIES = 10;
-    if (existingScores.length > MAX_LEADERBOARD_ENTRIES) {
-        existingScores.splice(MAX_LEADERBOARD_ENTRIES);
-    }
-
-    // Sačuvajte ažurirane rezultate u localStorage
-    localStorage.setItem('monopolyLeaderboard', JSON.stringify(existingScores));
 }
 function pokreniAukciju(poljaZaProdaju) {
   const aktivniIgraci = figurice.filter(i => i.aktivan && i.id !== figurice[trenutniIgrac].id);
@@ -948,7 +924,6 @@ function ucitajStanje() {
     azurirajPrikaz();
   }
 }
-// Funkcija za resetovanje igre
 function resetGame() {
   if (confirm("Da li ste sigurni da želite da resetujete celu igru? Svi podaci će biti izgubljeni.")) {
     // Resetovanje stanja figurica
@@ -1005,18 +980,18 @@ if (kontroleDiv) {
   document.body.appendChild(resetBtn);
 }
 resetBtn.addEventListener('click', resetGame);
-resetBtn.style.backgroundColor = '#dc3545';
-resetBtn.style.color = 'white';
-resetBtn.style.padding = '10px 20px';
-resetBtn.style.border = 'none';
-resetBtn.style.borderRadius = '5px';
-resetBtn.style.cursor = 'pointer';
-resetBtn.style.fontSize = '16px';
-resetBtn.style.fontWeight = 'bold';
-resetBtn.style.margin = '10px';
-resetBtn.style.transition = 'background-color 0.3s ease';
-resetBtn.style.marginLeft = '1057px';
-function applyResponsiveStyles() {
+resetBtn.style.backgroundColor = '#dc3545'; // Crvena pozadina (za reset)
+  resetBtn.style.color = 'white';             // Beli tekst
+  resetBtn.style.padding = '10px 20px';       // Unutrašnje popunjavanje
+  resetBtn.style.border = 'none';             // Bez okvira
+  resetBtn.style.borderRadius = '5px';        // Zaobljene ivice
+  resetBtn.style.cursor = 'pointer';          // Pokazivač miša
+  resetBtn.style.fontSize = '16px';           // Veličina fonta
+  resetBtn.style.fontWeight = 'bold';         // Podebljan tekst
+  resetBtn.style.margin = '10px';             // Margina oko dugmeta
+  resetBtn.style.transition = 'background-color 0.3s ease';
+  resetBtn.style.marginLeft='1057px';
+  function applyResponsiveStyles() {
   if (window.innerWidth <= 768) { // Za ekrane do 768px širine
     resetBtn.style.marginLeft = 'auto'; // Ukloni fiksnu marginu
     resetBtn.style.marginRight = 'auto';

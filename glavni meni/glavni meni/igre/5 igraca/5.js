@@ -39,7 +39,7 @@ const cenePolja = [
   300,    // 31: Šabac 2
   300,    // 32: Svilajnac
   320,    // 33: Aerodrom
-  null,   // 34: Porez - Ne kupuje se (iz HTML-a, ali ako je Sombor onda 200) - Držim se HTML-a za sada
+  320,   // 34: Porez - Ne kupuje se (iz HTML-a, ali ako je Sombor onda 200) - Držim se HTML-a za sada
   200,    // 35: Stanica
   null,   // 36: Šansa - Ne kupuje se
   350,    // 37: Pirot
@@ -180,7 +180,8 @@ const figurice = [
   { id: 1, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
   { id: 2, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
   { id: 3, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
-  { id: 4, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true }
+  { id: 4, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
+  { id: 5, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true }
 ];
 
 let trenutniIgrac = 0;
@@ -209,7 +210,7 @@ function postaviPocetneFigurice() {
     const polje = polja[igrac.pozicija];
     const figuricaEl = document.createElement('div');
     figuricaEl.className = `figurica igrac${igrac.id}`;
-    figuricaEl.innerText = ['🔴','🔵','🟢','🟡'][igrac.id - 1];
+    figuricaEl.innerText = ['🔴','🔵','🟢','🟡','🟠'][igrac.id - 1];
     polje.appendChild(figuricaEl);
   });
 }
@@ -297,7 +298,7 @@ function pomeriIgracaAnimirano(koraci, dupli, callback) {
     const polje = polja[igrac.pozicija];
     const figuricaEl = document.createElement('div');
     figuricaEl.className = `figurica igrac${igrac.id}`;
-    figuricaEl.innerText = ['🔴','🔵','🟢','🟡'][igrac.id - 1];
+    figuricaEl.innerText = ['🔴','🔵','🟢','🟡','🟠'][igrac.id - 1];
     polje.appendChild(figuricaEl);
 
     pomeranja++;
@@ -308,6 +309,7 @@ function pomeriIgracaAnimirano(koraci, dupli, callback) {
       else nakonPomeranja(dupli);
     }
   }, 250);
+  sacuvajStanje()
 }
 
 function nakonPomeranja(dupli) {
@@ -356,6 +358,7 @@ function nakonPomeranja(dupli) {
     azurirajPrikaz();
     // Ako je tvoje polje, ili polje koje ne izaziva akciju, idi na sledeceg igraca
   }
+  sacuvajStanje()
 }
 
 function izvuciSansu(dupli) {
@@ -419,6 +422,7 @@ function obradiPorez(index) {
   porez += 150;
   azurirajPrikaz();
   sledeciIgrac();
+  sacuvajStanje();
 }
 
 function obradiRentu(index) {
@@ -626,6 +630,7 @@ function pokreniProdajuImovine(igrac, iznos, callback) {
       pokreniProdajuImovine(igrac, iznos, callback);
     }
   }
+  sacuvajStanje()
 }
 
 function igracImaSvaPoljaGrupe(index, igracId) {
@@ -670,6 +675,7 @@ function azurirajPrikaz() {
     if (hipoteke[index]) polje.classList.add('hipotekovano');
     prikaziKucu(index);
   });
+  sacuvajStanje()
 }
 
 function hipotekaPolje() {
@@ -729,6 +735,7 @@ document.getElementById('kupi-polje').addEventListener('click', () => {
       sledeciIgrac();
     }
   }
+  sacuvajStanje()
 });
 
 document.getElementById('preskoci-kupovinu').addEventListener('click', () => {
@@ -741,6 +748,7 @@ document.getElementById('preskoci-kupovinu').addEventListener('click', () => {
       sledeciIgrac();
     }
   }
+  sacuvajStanje()
 });
 
 document.getElementById('baci-kockicu').addEventListener('click', baciKockice);
@@ -772,6 +780,7 @@ document.getElementById('izgradi').addEventListener('click', () => {
   } else {
     alert("Ne možeš graditi kuću na ovom polju!");
   }
+  sacuvajStanje()
 });
 
 document.getElementById('hipoteka').addEventListener('click', hipotekaPolje);
@@ -796,39 +805,17 @@ function sledeciIgrac() {
     alert(`Igra je završena! Pobednik je Igrač ${aktivni[0].id} 🎉`);
     location.reload();
     return;
+    sacuvajStanje()
   }
 
   do {
     trenutniIgrac = (trenutniIgrac + 1) % figurice.length;
   } while (!figurice[trenutniIgrac].aktivan);
 
-  naPotezu.innerText = `Na potezu: Igrač ${figurice[trenutniIgrac].id} (${['🔴','🔵','🟢','🟡'][trenutniIgrac]})`;
+  naPotezu.innerText = `Na potezu: Igrač ${figurice[trenutniIgrac].id} (${['🔴','🔵','🟢','🟡','🟠'][trenutniIgrac]})`;
   bacanjeDozvoljeno = true;
   kockica1.classList.remove('zaustavljena');
   kockica2.classList.remove('zaustavljena');
-}
-function saveWinnerScore(winnerId, finalMoney) {
-    // Učitajte postojeće rezultate
-    const existingScores = JSON.parse(localStorage.getItem('monopolyLeaderboard')) || [];
-
-    // Dodajte novi rezultat
-    existingScores.push({
-        player: `Igrač ${winnerId}`,
-        score: finalMoney,
-        date: new Date().toLocaleDateString('sr-RS') // Formatirajte datum po potrebi
-    });
-
-    // Opcionalno: Sortirajte rezultate od najvećeg ka najmanjem
-    existingScores.sort((a, b) => b.score - a.score);
-
-    // Opcionalno: Ograničite broj sačuvanih rezultata (npr. top 10)
-    const MAX_LEADERBOARD_ENTRIES = 10;
-    if (existingScores.length > MAX_LEADERBOARD_ENTRIES) {
-        existingScores.splice(MAX_LEADERBOARD_ENTRIES);
-    }
-
-    // Sačuvajte ažurirane rezultate u localStorage
-    localStorage.setItem('monopolyLeaderboard', JSON.stringify(existingScores));
 }
 function pokreniAukciju(poljaZaProdaju) {
   const aktivniIgraci = figurice.filter(i => i.aktivan && i.id !== figurice[trenutniIgrac].id);

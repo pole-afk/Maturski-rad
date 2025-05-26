@@ -268,7 +268,8 @@ body {
 
 /* Green */
 .polje.obojeno-desno[data-index="31"]::before,
-.polje.obojeno-desno[data-index="32"]::before{
+.polje.obojeno-desno[data-index="32"]::before,
+.polje.obojeno-desno[data-index="34"]::before {
     background-color: green;
 }
 
