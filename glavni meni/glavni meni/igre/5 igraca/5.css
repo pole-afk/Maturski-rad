@@ -326,3 +326,35 @@ body {
     transform-origin: top center;
   }
 }
+.reset-btn-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 20px 0;
+}
+
+#resetBtn {
+  background-color: #dc3545; /* Crvena pozadina */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  margin: 10px;
+}
+
+#resetBtn:hover {
+  background-color: #c82333; /* Tamnija crvena na hover */
+}
+
+@media (max-width: 768px) {
+  #resetBtn {
+    width: 90%;
+    max-width: 300px;
+    font-size: 14px;
+    padding: 8px 15px;
+  }
+}
