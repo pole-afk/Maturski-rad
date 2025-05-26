@@ -177,10 +177,10 @@ const komunalije = [12, 28];
 const porezi = [4, 38];
 
 const figurice = [
-  { id: 1, pozicija: 0, novac: -1, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
-  { id: 2, pozicija: 0, novac: -1, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
+  { id: 1, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
+  { id: 2, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
   { id: 3, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true },
-  { id: 4, pozicija: 0, novac: -1, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true }
+  { id: 4, pozicija: 0, novac: 1500, posedi: [], uZatvoru: false, kazna: 0, imaKartuZaIzlazIzZatvora: false, aktivan: true }
 ];
 
 let trenutniIgrac = 0;
