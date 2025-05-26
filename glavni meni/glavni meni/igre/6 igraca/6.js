@@ -4,6 +4,20 @@ const baciBtn = document.getElementById('baci-kockicu');
 const naPotezu = document.getElementById('na-potezu');
 const polja = document.querySelectorAll('.polje');
 let porez = 0;
+const zajednica = [
+  "Dobio si 100$ nasleđa!",
+  "Povrat poreza, dobijaš 20$.",
+  "Greška banke u tvoju korist. Sakupljaš 200$.",
+  "Tvoj rođendan. Svaki igrač ti daje 10$.",
+  "Prodao si deonice. Sakupljaš 50$.",
+  "Plaćaš školarinu 150$.",
+  "Plaćaš bolničke troškove 100$.",
+  "Premija osiguranja. Plati 50$.",
+  "Popravka kuće/hotela. Plati 25$ za svaku kuću, 100$ za svaki hotel.",
+  "Kazna za prebrzu vožnju. Plati 15$.",
+  "Idi direktno na Start. Sakupljaš 200$.",
+  "Idi direktno u zatvor."
+];
 const cenePolja = [
   null,   // 0: Start - Ne kupuje se
   60,     // 1: Beograd
@@ -336,8 +350,12 @@ function nakonPomeranja(dupli) {
     return;
   }
 
-  if ([2, 17, 22, 33,7,32].includes(index)) {
+  if ([2,22,36].includes(index)) {
     izvuciSansu(dupli); // Funkcija izvuciSansu() treba da odluci da li ce pozvati sledeciIgrac()
+    return;
+  }
+  if ([7, 17].includes(index)) { // Novi/modifikovani indeksi za Zajednicu (prilagodite prema svom HTML-u)
+    izvuciZajednicu(dupli);
     return;
   }
 
@@ -360,6 +378,80 @@ function nakonPomeranja(dupli) {
     // Ako je tvoje polje, ili polje koje ne izaziva akciju, idi na sledeceg igraca
   }
   sacuvajStanje()
+}
+function izvuciZajednicu(dupli) {
+  const igrac = figurice[trenutniIgrac];
+  const karta = zajednica[Math.floor(Math.random() * zajednica.length)];
+  alert("Zajednica: " + karta);
+
+  if (karta.includes("Dobio si") || karta.includes("dobijaš") || karta.includes("Sakupljaš")) {
+    // Izvuci iznos novca iz stringa
+    const iznosMatch = karta.match(/\d+/);
+    if (iznosMatch) {
+      const iznos = parseInt(iznosMatch[0]);
+      igrac.novac += iznos;
+    }
+  } else if (karta.includes("Plaćaš") || karta.includes("Plati")) {
+    // Izvuci iznos novca za plaćanje
+    const iznosMatch = karta.match(/\d+/);
+    if (iznosMatch) {
+      const iznos = parseInt(iznosMatch[0]);
+
+      if (karta.includes("Popravka kuće/hotela")) {
+        let totalniTrosak = 0;
+        // Proveri sva polja koja igrač poseduje
+        igrac.posedi.forEach(posedIndex => {
+          if (kuce[posedIndex] === 4) { // Ako je hotel
+            totalniTrosak += 100;
+          } else { // Ako su kuće
+            totalniTrosak += kuce[posedIndex] * 25; // 25$ po kući
+          }
+        });
+        alert(`Plaćaš <span class="math-inline">\{totalniTrosak\}</span> za popravke.`);
+        igrac.novac -= totalniTrosak;
+        porez += totalniTrosak; // Sakupljaj porez na Besplatnom Parkingu
+      } else {
+        igrac.novac -= iznos;
+        porez += iznos; // Dodaj porez na Besplatnom Parkingu
+      }
+    }
+  } else if (karta.includes("Tvoj rođendan")) {
+    const iznos = 10;
+    figurice.forEach(drugiIgrac => {
+      if (drugiIgrac.id !== igrac.id && drugiIgrac.aktivan) {
+        if (drugiIgrac.novac >= iznos) {
+          drugiIgrac.novac -= iznos;
+          igrac.novac += iznos;
+          alert(`Igrač <span class="math-inline">\{drugiIgrac\.id\} ti je dao 10</span>.`);
+        } else {
+          alert(`Igrač <span class="math-inline">\{drugiIgrac\.id\} nema dovoljno novca da ti da 10</span>.`);
+          // Možda implementirati logiku za bankrot ili pregovore ovde
+        }
+      }
+    });
+  } else if (karta.includes("Idi direktno u zatvor")) {
+    igrac.uZatvoru = true;
+    igrac.kazna = 3;
+    pomeriIgracaDoPolja(10, () => {
+      igrac.pozicija = 10;
+      azurirajPrikaz();
+      sledeciIgrac();
+    });
+    return; // Važno je prekinuti izvršavanje funkcije ovde
+  } else if (karta.includes("Idi direktno na Start")) {
+    pomeriIgracaDoPolja(0, () => {
+      igrac.novac += 200; // Dobija se 200$ za prolazak kroz Start
+      azurirajPrikaz();
+      sledeciIgrac();
+    });
+    return; // Važno je prekinuti izvršavanje funkcije ovde
+  }
+
+  azurirajPrikaz();
+  if (!dupli) {
+    sledeciIgrac();
+  }
+  sacuvajStanje();
 }
 
 function izvuciSansu(dupli) {
@@ -971,3 +1063,162 @@ function resetGame() {
   }
 }
 resetBtn.addEventListener('click', resetGame);
+function pokreniDogovor() {
+  const igracNaPotezu = figurice[trenutniIgrac];
+  const aktivniIgraci = figurice.filter(i => i.aktivan && i.id !== igracNaPotezu.id);
+
+  if (aktivniIgraci.length === 0) {
+    alert("Nema drugih aktivnih igrača za sklapanje dogovora.");
+    return;
+  }
+
+  // Korisnik bira s kim želi da sklopi dogovor
+  let partnerId = prompt(
+    `Igrač ${igracNaPotezu.id}, sa kojim igračem želiš da sklopiš dogovor?\n` +
+    `Dostupni igrači: ${aktivniIgraci.map(i => i.id).join(', ')}`
+  );
+
+  partnerId = parseInt(partnerId);
+  const partner = figurice.find(i => i.id === partnerId);
+
+  if (!partner || !aktivniIgraci.includes(partner)) {
+    alert("Nevažeći igrač. Pokušaj ponovo.");
+    return;
+  }
+
+  // Pozovi funkciju za kreiranje ponude
+  kreirajPonudu(igracNaPotezu, partner);
+}
+document.getElementById('dogovor-btn').addEventListener('click', pokreniDogovor);
+function kreirajPonudu(ponudjac, primalac) {
+  let ponudaNovacInput = prompt(`Igrač ${ponudjac.id}, koliko novca nudiš igraču ${primalac.id}? (Trenutno imaš: ${ponudjac.novac}$)`, "0");
+  let ponudaNovac = parseInt(ponudaNovacInput); // ISPRAVLJENO OVDJE
+
+  if (isNaN(ponudaNovac) || ponudaNovac < 0 || ponudaNovac > ponudjac.novac) {
+    alert("Nevažeći iznos novca.");
+    return;
+  }
+
+  let ponudaPoljaInput = prompt(`Igrač ${ponudjac.id}, unesi brojeve polja (razdvojene zarezom) koje nudiš igraču ${primalac.id}? (Tvoja polja: ${ponudjac.posedi.map(p => `${p} (${imenaPolja[p]})`).join(', ')})\nNema kuća na poljima koja se nude!`, "");
+  let ponudaPolja = ponudaPoljaInput.split(',').map(Number).filter(p => p > 0 && p < ukupnoPolja && ponudjac.posedi.includes(p));
+
+  // Provera da li na ponuđenim poljima ima kuća
+  for (const poljeIndex of ponudaPolja) {
+    if (kuce[poljeIndex] > 0) {
+      alert(`Ne možeš nuditi polje ${imenaPolja[poljeIndex]} jer na njemu ima kuća. Prvo prodaj kuće.`);
+      return;
+    }
+  }
+
+  let trazeniNovacInput = prompt(`Igrač ${ponudjac.id}, koliko novca tražiš od igrača ${primalac.id}? (Trenutno imaš: ${ponudjac.novac}$)`, "0");
+  let trazeniNovac = parseInt(trazeniNovacInput); // ISPRAVLJENO OVDJE
+
+  if (isNaN(trazeniNovac) || trazeniNovac < 0) {
+    alert("Nevažeći iznos novca.");
+    return;
+  }
+
+  let trazeniPoljaInput = prompt(`Igrač ${ponudjac.id}, unesi brojeve polja (razdvojene zarezom) koje tražiš od igrača ${primalac.id}? (Njegova polja: ${primalac.posedi.map(p => `${p} (${imenaPolja[p]})`).join(', ')})\nNema kuća na poljima koja se traže!`, "");
+  let trazeniPolja = trazeniPoljaInput.split(',').map(Number).filter(p => p > 0 && p < ukupnoPolja && primalac.posedi.includes(p));
+
+  for (const poljeIndex of trazeniPolja) {
+    if (kuce[poljeIndex] > 0) {
+      alert(`Ne možeš tražiti polje ${imenaPolja[poljeIndex]} jer na njemu ima kuća.`);
+      return;
+    }
+  }
+
+  let ponudaKartaIzlazak = confirm(`Igrač ${ponudjac.id}, da li nudiš kartu za izlazak iz zatvora? (Imaš: ${ponudjac.imaKartuZaIzlazIzZatvora ? 'DA' : 'NE'})`);
+  let trazenaKartaIzlazak = confirm(`Igrač ${ponudjac.id}, da li tražiš kartu za izlazak iz zatvora od igrača ${primalac.id}? (On ima: ${primalac.imaKartuZaIzlazIzZatvora ? 'DA' : 'NE'})`);
+
+  // Prikaz ponude primaocu
+  prikaziPonudu(ponudjac, primalac, ponudaNovac, ponudaPolja, trazeniNovac, trazeniPolja, ponudaKartaIzlazak, trazenaKartaIzlazak);
+}
+function izvrsiDogovor(ponudjac, primalac, ponudaNovac, ponudaPolja, trazeniNovac, trazeniPolja, ponudaKartaIzlazak, trazenaKartaIzlazak) {
+  // Provera da li ponudjac ima ono što nudi i primalac ono što se traži
+  if (ponudjac.novac < ponudaNovac || primalac.novac < trazeniNovac) {
+    alert("Nema dovoljno novca za izvršenje dogovora!");
+    return;
+  }
+  if (ponudaKartaIzlazak && !ponudjac.imaKartuZaIzlazIzZatvora) {
+    alert("Ponudjac nema kartu za izlazak iz zatvora koju nudi!");
+    return;
+  }
+  if (trazenaKartaIzlazak && !primalac.imaKartuZaIzlazIzZatvora) {
+    alert("Primalac nema kartu za izlazak iz zatvora koja se traži!");
+    return;
+  }
+
+  // Prebacivanje novca
+  ponudjac.novac -= ponudaNovac;
+  primalac.novac += ponudaNovac;
+  primalac.novac -= trazeniNovac;
+  ponudjac.novac += trazeniNovac;
+
+  // Prebacivanje polja
+  ponudaPolja.forEach(poljeIndex => {
+    // Ukloni polje od ponuđača
+    let indexUkloni = ponudjac.posedi.indexOf(poljeIndex);
+    if (indexUkloni > -1) {
+      ponudjac.posedi.splice(indexUkloni, 1);
+    }
+    // Dodaj polje primaocu
+    primalac.posedi.push(poljeIndex);
+    vlasnici[poljeIndex] = primalac.id;
+    // Resetuj hipoteke i kuće ako se polje prenosi
+    hipoteke[poljeIndex] = false;
+    kuce[poljeIndex] = 0;
+  });
+
+  trazeniPolja.forEach(poljeIndex => {
+    // Ukloni polje od primaoca
+    let indexUkloni = primalac.posedi.indexOf(poljeIndex);
+    if (indexUkloni > -1) {
+      primalac.posedi.splice(indexUkloni, 1);
+    }
+    // Dodaj polje ponuđaču
+    ponudjac.posedi.push(poljeIndex);
+    vlasnici[poljeIndex] = ponudjac.id;
+    // Resetuj hipoteke i kuće ako se polje prenosi
+    hipoteke[poljeIndex] = false;
+    kuce[poljeIndex] = 0;
+  });
+
+  // Prebacivanje karata za izlazak iz zatvora
+  if (ponudaKartaIzlazak && ponudjac.imaKartuZaIzlazIzZatvora) {
+    ponudjac.imaKartuZaIzlazIzZatvora = false;
+    primalac.imaKartuZaIzlazIzZatvora = true;
+  }
+  if (trazenaKartaIzlazak && primalac.imaKartuZaIzlazIzZatvora) {
+    primalac.imaKartuZaIzlazIzZatvora = false;
+    ponudjac.imaKartuZaIzlazIzZatvora = true;
+  }
+
+  alert("Dogovor je uspešno sklopljen!");
+  azurirajPrikaz();
+  sacuvajStanje();
+}
+function prikaziPonudu(ponudjac, primalac, ponudaNovac, ponudaPolja, trazeniNovac, trazeniPolja, ponudaKartaIzlazak, trazenaKartaIzlazak) {
+  let poruka = `Igrač ${primalac.id}, igrač ${ponudjac.id} ti nudi sledeći dogovor:\n\n`;
+
+  if (ponudaNovac > 0) poruka += `  - ${ponudaNovac}$ novca\n`;
+  if (ponudaPolja.length > 0) poruka += `  - Polja: ${ponudaPolja.map(p => imenaPolja[p]).join(', ')}\n`;
+  if (ponudaKartaIzlazak && ponudjac.imaKartuZaIzlazIzZatvora) poruka += `  - Kartu za izlazak iz zatvora\n`;
+
+  poruka += `\nU zamenu traži:\n\n`;
+
+  if (trazeniNovac > 0) poruka += `  - ${trazeniNovac}$ novca\n`;
+  if (trazeniPolja.length > 0) poruka += `  - Polja: ${trazeniPolja.map(p => imenaPolja[p]).join(', ')}\n`;
+  if (trazenaKartaIzlazak && primalac.imaKartuZaIzlazIzZatvora) poruka += `  - Kartu za izlazak iz zatvora\n`;
+
+  poruka += `\nDa li prihvataš ovu ponudu?`;
+
+  const prihvatio = confirm(poruka);
+
+  if (prihvatio) {
+    izvrsiDogovor(ponudjac, primalac, ponudaNovac, ponudaPolja, trazeniNovac, trazeniPolja, ponudaKartaIzlazak, trazenaKartaIzlazak);
+  } else {
+    alert(`Igrač ${primalac.id} je odbio ponudu.`);
+  }
+  sacuvajStanje();
+}

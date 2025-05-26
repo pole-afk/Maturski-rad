@@ -338,3 +338,28 @@ body {
     padding: 8px 15px;
   }
 }
+#dogovor-btn {
+  /* Basic styling for consistency with other buttons */
+  background-color: #17a2b8; /* Bootstrap info color */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  margin: 2px; /* Small margin for spacing between buttons */
+}
+
+#dogovor-btn:hover {
+  background-color: #138496; /* Darker shade on hover */
+}
+
+/* Optional: Adjust for smaller screens if needed */
+@media (max-width: 768px) {
+  #dogovor-btn {
+    font-size: 14px;
+    padding: 8px 15px;
+  }
+}
