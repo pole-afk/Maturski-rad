@@ -613,7 +613,7 @@ function nakonPomeranja(dupli) {
   }
 
   if (porezi.includes(index)) {
-    obradiPorez(index); 
+    obradiPorez(index,dupli); 
     return;
   }
  if (dupli && !igrac.uZatvoru) {
@@ -631,10 +631,13 @@ function nakonPomeranja(dupli) {
     document.getElementById('akcije').style.display = 'block';
    
   } else if (vlasnikId !== null && vlasnikId !== igrac.id) { 
-    obradiRentu(index); 
-  } else { 
-    azurirajPrikaz();
+    obradiRentu(index,dupli);  
+  } else if(vlasnikId !== null && vlasnikId == igrac.id){ 
     
+    document.getElementById('akcije').style.display = 'block';
+  }
+  else{
+    azurirajPrikaz();
   }
   sacuvajStanje()
 }
@@ -723,42 +726,44 @@ function izvuciSansu(dupli) {
   const karta = sansa[Math.floor(Math.random() * sansa.length)];
   showBootstrapAlert("Šansa: " + karta);
 
-  if (karta.includes("Dobio")) {
+  // PRVO proveri za "Karta za izlazak iz zatvora"
+  if (karta.includes("Karta za izlazak iz zatvora")) {
+      igrac.imaKartuZaIzlazIzZatvora = true;
+      showBootstrapAlert("Dobio si kartu za izlazak iz zatvora!");
+      azurirajPrikaz();
+      // Nema sledeciIgrac() ovde, to se dešava na kraju funkcije ako nije dupli
+  } else if (karta.includes("Dobio")) {
     igrac.novac += 200;
+    azurirajPrikaz();
   } else if (karta.includes("Plati")) {
     igrac.novac -= 100;
     porez += 100;
+    azurirajPrikaz();
   }
-  // IZMENJENO: Ako karta uključuje "izlazak" ILI "zatvor", idi direktno u zatvor
-  else if (karta.includes("zatvor")) {
+  // Sada proveri za "Idi direktno u zatvor"
+  else if (karta.includes("zatvor")) { // Ovo će sada uhvatiti samo "Idi direktno u zatvor"
     igrac.uZatvoru = true;
     igrac.kazna = 3;
     pomeriIgracaDoPolja(10, () => {
       igrac.pozicija = 10;
       azurirajPrikaz();
-      sledeciIgrac();
+      sledeciIgrac(); // Ide na sledećeg igrača jer je u zatvoru
     });
-    return;
-
+    return; // Važno: Prekini izvršavanje nakon slanja u zatvor
   } else if (karta.includes("Start")) {
     pomeriIgracaDoPolja(0, () => {
       igrac.novac += 200;
       azurirajPrikaz();
-      sledeciIgrac();
+      sledeciIgrac(); // Ide na sledećeg igrača
     });
-    return;
-  }
-  else if (karta.includes("Karta"))
-  {
-      igrac.imaKartuZaIzlazIzZatvora=true;
-      azurirajPrikaz();
-      sledeciIgrac();
+    return; // Važno: Prekini izvršavanje
   }
 
-  azurirajPrikaz();
+  // Zajednička logika za prebacivanje poteza ako nije bilo 'return' i nije dupli
   if (!dupli) {
     sledeciIgrac();
   }
+  sacuvajStanje();
 }
 
 function pomeriIgracaDoPolja(zeljenoPolje, callback) {
@@ -779,26 +784,27 @@ function pomeriIgracaDoPolja(zeljenoPolje, callback) {
   });
 }
 
-function obradiPorez(index) {
+function obradiPorez(index, dupli) { // <--- DODAJ 'dupli' KAO ARGUMENT
   const igrac = figurice[trenutniIgrac];
   let iznosPoreza = 0;
 
-  // Prema originalnom kodu, za porez 4 i 38, plaća se 150$.
-  iznosPoreza = 150; // Fiksna vrednost poreza prema tvom kodu
+  iznosPoreza = 150; // Fiksna vrednost poreza
 
   igrac.novac -= iznosPoreza;
   showBootstrapAlert(`Porez! Platio si ${iznosPoreza}$.`);
   porez += iznosPoreza; // Dodajemo u ukupan porez
   azurirajPrikaz();
-  if(bacanjeDozvoljeno!=true)
-  {
+
+  if (!dupli) { // <--- KLJUČNO: Prebaci potez SAMO AKO NIJE DUPLI
      sledeciIgrac();
   }
- 
+  // Ako je dupli, potez se NE prebacuje. bacanjeDozvoljeno će ostati true
+  // i igrač će moći ponovo da baci kockice.
+
   sacuvajStanje();
 }
 
-async function obradiRentu(index) {
+async function obradiRentu(index, dupli) { // <--- DODAJ 'dupli' KAO ARGUMENT
   const igrac = figurice[trenutniIgrac];
   const vlasnikId = vlasnici[index];
 
@@ -808,12 +814,14 @@ async function obradiRentu(index) {
     if (hipoteke[index]) {
       showBootstrapAlert(`Polje ${imenaPolja[index]} je pod hipotekom. Nema rente za plaćanje.`);
       azurirajPrikaz();
-      sledeciIgrac();
-      return;
+      if (!dupli) { // <--- Prebaci potez SAMO AKO NIJE DUPLI
+          sledeciIgrac();
+      }
+      return; // VAŽNO: Vrati se ovde, jer je potez gotov u ovom scenariju
     }
 
     let renta = 0;
-    const dupli = parseInt(kockica1.innerText) === parseInt(kockica2.innerText); // Potrebno za komunalije
+    // const dupli = parseInt(kockica1.innerText) === parseInt(kockica2.innerText); // <--- OVO UKLONI, 'dupli' se već prosleđuje
 
     if (zeleznice.includes(index)) {
       // Logika za železničke stanice
@@ -854,45 +862,51 @@ async function obradiRentu(index) {
       }
       showBootstrapAlert(`Stao si na ${imenaPolja[index]}. Renta je ${renta}$.`);
 
-    } else { // Specijalna polja koja se ne kupuju i nemaju rentu
+    } else { // Specijalna polja koja se ne kupuju i nemaju rentu (npr. Start, Zatvor u poseti, Besplatan parking)
       azurirajPrikaz();
-      sledeciIgrac();
-      return;
+      if (!dupli) { // <--- Prebaci potez SAMO AKO NIJE DUPLI
+          sledeciIgrac();
+      }
+      return; // VAŽNO: Vrati se ovde, jer je potez gotov
     }
 
+    // --- KLJUČNA LOGIKA: ISPLATA RENTE ---
     if (igrac.novac >= renta) {
       igrac.novac -= renta;
       vlasnik.novac += renta;
       showBootstrapAlert(`Platio si rentu od ${renta}$ igraču ${vlasnikId} za polje ${imenaPolja[index]}.`);
-      azurirajPrikaz();
-      sledeciIgrac();
+      azurirajPrikaz(); // Ažuriraj prikaz nakon plaćanja
+      if (!dupli) { // <--- KLJUČNO: Prebaci potez SAMO AKO NIJE DUPLI
+          sledeciIgrac();
+      }
     } else {
+      // Logika za bankrot/pregovore/prodaju imovine kada nema dovoljno novca
       const izbor = await bootstrapPrompt(
-  `Nemaš dovoljno novca da platiš rentu od ${renta}$!\n` +
-  `1. Pokušaj da pregovaraš\n` +
-  `2. Prodaj nešto od svoje imovine\n` +
-  `3. 3. Bankrotiraj`,
-  "1"
-);
+        `Nemaš dovoljno novca da platiš rentu od ${renta}$!\n` +
+        `1. Pokušaj da pregovaraš\n` +
+        `2. Prodaj nešto od svoje imovine\n` +
+        `3. Bankrotiraj`,
+        "1"
+      );
 
       if (izbor === "1") {
         pokreniPregovore(igrac, vlasnikId, renta, index);
       } else if (izbor === "2") {
-        pokreniProdajuImovine(igrac, renta, () => obradiRentu(index));
+        pokreniProdajuImovine(igrac, renta, () => obradiRentu(index, dupli)); // <--- PROSLEDI 'dupli' I OVDE
       } else {
-        igrac.novac = -1;
-        sledeciIgrac();
+        igrac.novac = -1; // Igrač bankrotira
+        sledeciIgrac(); // Potez se prebacuje jer je igrač bankrotirao
       }
     }
-  } else { // Ako je polje slobodno, ili igraču pripada
+  } else { // Ovaj 'else' blok se odnosi na slučaj kada igrac stane na svoje polje ili slobodno
+            // Ovo bi generalno trebalo da se obradi u 'nakonPomeranja' a ne ovde,
+            // ali ako je ostalo u kodu, osigurajmo da se potez prebaci ako nije dupli.
     azurirajPrikaz();
-    if (cenePolja[index] === null || vlasnici[index] === igrac.id) {
-      if (!dupli) {
+    if (!dupli) {
         sledeciIgrac();
-      }
     }
   }
-  sacuvajStanje();
+  sacuvajStanje(); // Sačuvaj stanje na kraju
 }
 
 
@@ -1034,22 +1048,38 @@ function azurirajPrikaz() {
       } else {
         info.style.display = 'block';
         info.querySelector('.novac').innerText = igrac.novac;
-        info.querySelector('.polja').innerText = igrac.posedi
-          .map(index => imenaPolja[index])
+        // IZMENJENO: Dodato prikazivanje broja kućica
+        info.querySelector('.polja').innerHTML = igrac.posedi
+          .map(index => {
+            let kuciceInfo = '';
+            if (kuce[index] > 0) {
+              kuciceInfo = ` (${kuce[index]}x🏠)`;
+              if (kuce[index] === 4) { // Ako je hotel
+                kuciceInfo = ` (🏨)`;
+              }
+            }
+            return `${imenaPolja[index]}${kuciceInfo}`;
+          })
           .join(', ');
       }
     }
   });
 
   polja.forEach((polje, index) => {
-    polje.classList.remove('vlasnik1', 'vlasnik2', 'vlasnik3', 'vlasnik4', 'hipotekovano');
+    polje.classList.remove('vlasnik1', 'vlasnik2', 'vlasnik3', 'vlasnik4'); // Ukloni fiksne klase
+    // Ukloni sve moguće klase vlasnika (za do 6 igrača)
+    for (let i = 1; i <= 6; i++) { // Pretpostavljam da imaš max 6 igrača
+        polje.classList.remove(`vlasnik${i}`);
+    }
     if (vlasnici[index]) polje.classList.add(`vlasnik${vlasnici[index]}`);
     if (hipoteke[index]) polje.classList.add('hipotekovano');
     prikaziKucu(index);
   });
 
-  // DODATO: Ažuriranje prikaza poreza
-  document.getElementById('porez-info').innerText = `Ukupan Porez: ${porez}$`;
+  const porezInfoEl = document.getElementById('porez-info');
+  if (porezInfoEl) {
+    porezInfoEl.innerText = `Ukupan Porez: ${porez}$`;
+  }
 
   sacuvajStanje();
 }
