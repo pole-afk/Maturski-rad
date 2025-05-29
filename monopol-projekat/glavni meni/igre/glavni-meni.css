@@ -1,4 +1,4 @@
-/* Osnovni stil za ceo dokument */
+
 body {
     margin: 0;
     padding: 0;
@@ -13,7 +13,6 @@ body {
     align-items: center;
 }
 
-/* Naslov */
 h1 {
     margin-top: 40px;
     color: #2c3e50;
