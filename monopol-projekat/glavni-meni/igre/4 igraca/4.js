@@ -1491,75 +1491,69 @@ setTimeout(() => {
   sacuvajStanje();
 }
 async function pokreniAukciju(poljaZaProdaju) {
-  const aktivniIgraci = figurice.filter(i => i.aktivan && i.id !== figurice[trenutniIgrac].id);
-  if (aktivniIgraci.length === 0 || poljaZaProdaju.length === 0) {
+  const bankrotiraniIgracId = figurice[trenutniIgrac].id;
+  const aktivniIgraciZaAukciju = figurice.filter(i => i.aktivan && i.id !== bankrotiraniIgracId);
+
+  if (aktivniIgraciZaAukciju.length === 0 || poljaZaProdaju.length === 0) {
     azurirajPrikaz();
     sledeciIgrac();
     return;
   }
 
-  let trenutnaPonuda = { igracId: null, iznos: 0 };
-  let indeksPonudjaca = 0;
-
   const poljeIndex = poljaZaProdaju[0];
-  const osnovnaCena = cenePolja[poljeIndex] || 0;
+  if (poljeIndex === undefined || poljeIndex === null) {
+      poljaZaProdaju.shift();
+      if (poljaZaProdaju.length > 0) {
+          pokreniAukciju(poljaZaProdaju);
+      } else {
+          azurirajPrikaz();
+          sledeciIgrac();
+      }
+      return;
+  }
 
-  showBootstrapAlert(`Počinje aukcija za polje ${poljeIndex} (${imenaPolja[poljeIndex]})!`);
+  showBootstrapAlert(`Počinje aukcija za polje ${imenaPolja[poljeIndex]} (Polje ${poljeIndex})!`);
 
-  async function procesuirajAukciju() {
-    const trenutnoAktivniPonudjaci = aktivniIgraci.filter(p => !p.odustaoOdAukcije);
+  let trenutnaPonuda = { igracId: null, iznos: 0 };
+  let igraciKojiSuOdustali = new Set();
+  let indeksTrenutnogPonudjaca = 0;
+  let poslednjaPonudaKrug = -1; // Pamti u kom krugu je data poslednja ponuda
+  let krugAukcije = 0; // Brojač krugova aukcije
 
-    if (trenutnoAktivniPonudjaci.length === 1 && trenutnaPonuda.igracId === trenutnoAktivniPonudjaci[0].id) {
-        const pobednik = figurice.find(i => i.id === trenutnaPonuda.igracId);
+  async function aukcijskiKrug() {
+    krugAukcije++; // Povećaj broj kruga sa svakim pozivom aukcijskiKrug()
+
+    let preostaliPonudjaci = aktivniIgraciZaAukciju.filter(p => !igraciKojiSuOdustali.has(p.id));
+
+    // Uslov za završetak aukcije
+    if (preostaliPonudjaci.length === 1 && trenutnaPonuda.igracId === preostaliPonudjaci[0].id && krugAukcije > poslednjaPonudaKrug + (aktivniIgraciZaAukciju.length - igraciKojiSuOdustali.size)) {
+        // Aukcija se završava jer je preostao samo jedan igrač koji je dao poslednju ponudu i prošao je ceo krug
+        const pobednik = preostaliPonudjaci[0];
         if (pobednik.novac >= trenutnaPonuda.iznos) {
             pobednik.novac -= trenutnaPonuda.iznos;
             pobednik.posedi.push(poljeIndex);
             vlasnici[poljeIndex] = pobednik.id;
             showBootstrapAlert(`Igrač ${pobednik.id} osvojio polje ${imenaPolja[poljeIndex]} za ${trenutnaPonuda.iznos}$`);
-
-            aktivniIgraci.forEach(p => p.odustaoOdAukcije = false);
-
-            poljaZaProdaju.shift();
-            if (poljaZaProdaju.length > 0) {
-              pokreniAukciju(poljaZaProdaju);
-            } else {
-              azurirajPrikaz();
-              sledeciIgrac();
-            }
-            return;
-        }
-    } else if (trenutnoAktivniPonudjaci.length === 0 && trenutnaPonuda.igracId === null) {
-        showBootstrapAlert(`Niko nije osvojio polje ${imenaPolja[poljeIndex]}.`);
-        vlasnici[poljeIndex] = null;
-        kuce[poljeIndex] = 0;
-        hipoteke[poljeIndex] = false;
-
-        aktivniIgraci.forEach(p => p.odustaoOdAukcije = false);
-
-        poljaZaProdaju.shift();
-        if (poljaZaProdaju.length > 0) {
-          pokreniAukciju(poljaZaProdaju);
         } else {
-          azurirajPrikaz();
-          sledeciIgrac();
+            showBootstrapAlert(`Igrač ${pobednik.id} nema dovoljno novca za ponudu! Polje ${imenaPolja[poljeIndex]} ostaje neprodato.`);
+            vlasnici[poljeIndex] = null;
+            kuce[poljeIndex] = 0;
+            hipoteke[poljeIndex] = false;
+        }
+        
+        // Resetuj stanje za sledeću aukciju
+        igraciKojiSuOdustali.clear();
+        poljaZaProdaju.shift(); // Ukloni prodato/neprodato polje
+        if (poljaZaProdaju.length > 0) {
+            pokreniAukciju(poljaZaProdaju); // Pokreni aukciju za sledeće polje
+        } else {
+            azurirajPrikaz();
+            sledeciIgrac();
         }
         return;
-    }
-
-
-    let sledeciPonudjac;
-    let originalniIndeksPonudjaca = indeksPonudjaca;
-    do {
-        sledeciPonudjac = aktivniIgraci[indeksPonudjaca];
-        indeksPonudjaca = (indeksPonudjaca + 1) % aktivniIgraci.length;
-        if (indeksPonudjaca === originalniIndeksPonudjaca && sledeciPonudjac.odustaoOdAukcije) {
-            break;
-        }
-    } while (sledeciPonudjac.odustaoOdAukcije);
-
-
-    if (!sledeciPonudjac || sledeciPonudjac.odustaoOdAukcije) {
-        if (trenutnaPonuda.igracId) {
+    } else if (preostaliPonudjaci.length === 0) { // Svi su odustali
+        if (trenutnaPonuda.igracId !== null) {
+            // Neko je dao poslednju ponudu i svi ostali su odustali
             const pobednik = figurice.find(i => i.id === trenutnaPonuda.igracId);
             if (pobednik.novac >= trenutnaPonuda.iznos) {
                 pobednik.novac -= trenutnaPonuda.iznos;
@@ -1573,13 +1567,13 @@ async function pokreniAukciju(poljaZaProdaju) {
                 hipoteke[poljeIndex] = false;
             }
         } else {
+            // Niko nije ni ponudio
             showBootstrapAlert(`Niko nije osvojio polje ${imenaPolja[poljeIndex]}.`);
             vlasnici[poljeIndex] = null;
             kuce[poljeIndex] = 0;
             hipoteke[poljeIndex] = false;
         }
-
-        aktivniIgraci.forEach(p => p.odustaoOdAukcije = false);
+        igraciKojiSuOdustali.clear();
         poljaZaProdaju.shift();
         if (poljaZaProdaju.length > 0) {
             pokreniAukciju(poljaZaProdaju);
@@ -1590,6 +1584,48 @@ async function pokreniAukciju(poljaZaProdaju) {
         return;
     }
 
+    // Pronađi sledećeg igrača koji je na redu za licitiranje i nije odustao
+    let sledeciPonudjac;
+    let originalniIndeksTrenutnogPonudjaca = indeksTrenutnogPonudjaca;
+    
+    // Prolazimo kroz aktivne igrače dok ne nađemo sledećeg koji nije odustao
+    do {
+      sledeciPonudjac = aktivniIgraciZaAukciju[indeksTrenutnogPonudjaca];
+      indeksTrenutnogPonudjaca = (indeksTrenutnogPonudjaca + 1) % aktivniIgraciZaAukciju.length;
+
+      // Ako smo se vratili na početni indeks, a i dalje nismo našli aktivnog ponuđača (svi ostali su odustali)
+      if (indeksTrenutnogPonudjaca === originalniIndeksTrenutnogPonudjaca && igraciKojiSuOdustali.size === aktivniIgraciZaAukciju.length) {
+          // Ovo se dešava ako su svi odustali i nikome se ne može dati ponuda
+          if (trenutnaPonuda.igracId !== null) {
+              const pobednik = figurice.find(i => i.id === trenutnaPonuda.igracId);
+              if (pobednik.novac >= trenutnaPonuda.iznos) {
+                  pobednik.novac -= trenutnaPonuda.iznos;
+                  pobednik.posedi.push(poljeIndex);
+                  vlasnici[poljeIndex] = pobednik.id;
+                  showBootstrapAlert(`Igrač ${pobednik.id} osvojio polje ${imenaPolja[poljeIndex]} za ${trenutnaPonuda.iznos}$`);
+              } else {
+                  showBootstrapAlert(`Igrač ${pobednik.id} nema dovoljno novca za ponudu! Polje ${imenaPolja[poljeIndex]} ostaje neprodato.`);
+                  vlasnici[poljeIndex] = null;
+                  kuce[poljeIndex] = 0;
+                  hipoteke[poljeIndex] = false;
+              }
+          } else {
+              showBootstrapAlert(`Niko nije osvojio polje ${imenaPolja[poljeIndex]}.`);
+              vlasnici[poljeIndex] = null;
+              kuce[poljeIndex] = 0;
+              hipoteke[poljeIndex] = false;
+          }
+          igraciKojiSuOdustali.clear();
+          poljaZaProdaju.shift();
+          if (poljaZaProdaju.length > 0) {
+              pokreniAukciju(poljaZaProdaju);
+          } else {
+              azurirajPrikaz();
+              sledeciIgrac();
+          }
+          return;
+      }
+    } while (igraciKojiSuOdustali.has(sledeciPonudjac.id));
 
     const ponuda = await bootstrapPrompt(
       `Aukcija za polje ${imenaPolja[poljeIndex]} (Polje ${poljeIndex})\n` +
@@ -1602,26 +1638,56 @@ async function pokreniAukciju(poljaZaProdaju) {
     const ponudaBroj = parseInt(ponuda);
     if (!isNaN(ponudaBroj)) {
       if (ponudaBroj === 0) {
-        sledeciPonudjac.odustaoOdAukcije = true;
+        igraciKojiSuOdustali.add(sledeciPonudjac.id);
+        showBootstrapAlert(`Igrač ${sledeciPonudjac.id} je odustao od aukcije.`);
       } else if (ponudaBroj > trenutnaPonuda.iznos && ponudaBroj <= sledeciPonudjac.novac) {
         trenutnaPonuda = { igracId: sledeciPonudjac.id, iznos: ponudaBroj };
-        aktivniIgraci.forEach(p => p.odustaoOdAukcije = false);
-        indeksPonudjaca = 0;
+        poslednjaPonudaKrug = krugAukcije; // Zabeleži krug kada je data poslednja ponuda
+        showBootstrapAlert(`Igrač ${sledeciPonudjac.id} je ponudio ${ponudaBroj}$.`);
       } else {
         showBootstrapAlert("Nevažeća ponuda! Ponuda mora biti veća od trenutne i ne sme premašiti tvoj novac.");
-        indeksPonudjaca = (indeksPonudjaca - 1 + aktivniIgraci.length) % aktivniIgraci.length;
+        // Ako je nevažeća ponuda, dajemo istom igraču ponovo šansu
+        indeksTrenutnogPonudjaca = (indeksTrenutnogPonudjaca - 1 + aktivniIgraciZaAukciju.length) % aktivniIgraciZaAukciju.length;
       }
     } else {
         showBootstrapAlert("Nevažeći unos. Molimo unesite broj.");
-        indeksPonudjaca = (indeksPonudjaca - 1 + aktivniIgraci.length) % aktivniIgraci.length;
+        // Ako je nevažeći unos, dajemo istom igraču ponovo šansu
+        indeksTrenutnogPonudjaca = (indeksTrenutnogPonudjaca - 1 + aktivniIgraciZaAukciju.length) % aktivniIgraciZaAukciju.length;
     }
 
-    procesuirajAukciju();
+    // Provera da li je aukcija zaista završena:
+    // Ako je preostao samo jedan ponuđač, i taj ponuđač je dao poslednju ponudu, i prošao je ceo krug od te ponude
+    if (preostaliPonudjaci.length === 1 && trenutnaPonuda.igracId === preostaliPonudjaci[0].id && krugAukcije > poslednjaPonudaKrug + (aktivniIgraciZaAukciju.length - igraciKojiSuOdustali.size)) {
+         // Opet uslov za završetak, jer se može desiti da se ispuni tek nakon ponude
+        const pobednik = preostaliPonudjaci[0];
+        if (pobednik.novac >= trenutnaPonuda.iznos) {
+            pobednik.novac -= trenutnaPonuda.iznos;
+            pobednik.posedi.push(poljeIndex);
+            vlasnici[poljeIndex] = pobednik.id;
+            showBootstrapAlert(`Igrač ${pobednik.id} osvojio polje ${imenaPolja[poljeIndex]} za ${trenutnaPonuda.iznos}$`);
+        } else {
+            showBootstrapAlert(`Igrač ${pobednik.id} nema dovoljno novca za ponudu! Polje ${imenaPolja[poljeIndex]} ostaje neprodato.`);
+            vlasnici[poljeIndex] = null;
+            kuce[poljeIndex] = 0;
+            hipoteke[poljeIndex] = false;
+        }
+        igraciKojiSuOdustali.clear();
+        poljaZaProdaju.shift();
+        if (poljaZaProdaju.length > 0) {
+            pokreniAukciju(poljaZaProdaju);
+        } else {
+            azurirajPrikaz();
+            sledeciIgrac();
+        }
+        return;
+    }
+
+    // Nastavi sledeći krug aukcije
+    aukcijskiKrug();
   }
 
-  aktivniIgraci.forEach(p => p.odustaoOdAukcije = false);
-
-  procesuirajAukciju();
+  // Pokreni prvi krug aukcije
+  aukcijskiKrug();
 }
 
 window.addEventListener('load', () => {
