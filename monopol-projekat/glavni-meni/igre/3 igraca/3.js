@@ -1222,7 +1222,207 @@ document.getElementById('izgradi').addEventListener('click', () => {
 
 document.getElementById('hipoteka').addEventListener('click', hipotekaPolje);
 document.getElementById('odglavi').addEventListener('click', odglaviPolje);
+document.getElementById('dogovor-btn').addEventListener('click', async () => {
+    const igrac = figurice[trenutniIgrac];
+    const aktivniIgraciZaDogovor = figurice.filter(i => i.aktivan && i.id !== igrac.id);
 
+    if (aktivniIgraciZaDogovor.length === 0) {
+        showBootstrapAlert("Nema drugih aktivnih igrača za dogovor.");
+        return;
+    }
+
+    let igraciList = aktivniIgraciZaDogovor.map(p => `${p.id} (${['🔴','🔵','🟢','🟡'][p.id - 1]})`).join(', ');
+
+    let primalacIdInput = await bootstrapPrompt(`Igrač ${igrac.id}, sa kojim igračem želiš da praviš dogovor? (Dostupni igrači: ${igraciList})`, "");
+
+    let primalacId = parseInt(primalacIdInput);
+    const primalac = figurice.find(p => p.id === primalacId);
+
+    if (!primalac || !primalac.aktivan || primalac.id === igrac.id) {
+        showBootstrapAlert("Nevažeći ID igrača ili igrač nije aktivan.");
+        return;
+    }
+
+    await kreirajPonudu(igrac, primalac);
+});
+
+async function kreirajPonudu(ponudjac, primalac) {
+  let ponudaNovacInput = await bootstrapPrompt(`Igrač ${ponudjac.id}, koliko novca nudiš igraču ${primalac.id}? (Trenutno imaš: ${ponudjac.novac}$)`, "0");
+
+  let ponudaNovac = parseInt(ponudaNovacInput);
+
+  if (isNaN(ponudaNovac) || ponudaNovac < 0 || ponudaNovac > ponudjac.novac) {
+    showBootstrapAlert("Nevažeći iznos novca.");
+    return;
+  }
+
+  let ponudaPoljaInput = await bootstrapPrompt(`Igrač ${ponudjac.id}, unesi brojeve polja (razdvojene zarezom) koje nudiš igraču ${primalac.id}? (Tvoja polja: ${ponudjac.posedi.map(p => `${p} (${imenaPolja[p]})`).join(', ')})\nNema kuća na poljima koja se nude!`, "");
+
+  let ponudaPolja = ponudaPoljaInput.split(',').map(Number).filter(p => p > 0 && p < ukupnoPolja && ponudjac.posedi.includes(p));
+
+  // Provera da li na ponuđenim poljima ima kuća
+  for (const poljeIndex of ponudaPolja) {
+    if (kuce[poljeIndex] > 0) {
+      showBootstrapAlert(`Ne možeš nuditi polje ${imenaPolja[poljeIndex]} jer na njemu ima kuća. Prvo prodaj kuće.`);
+      return;
+    }
+  }
+
+  let trazeniNovacInput = await bootstrapPrompt(`Igrač ${ponudjac.id}, koliko novca tražiš od igrača ${primalac.id}? (Trenutno imaš: ${ponudjac.novac}$)`, "0");
+  let trazeniNovac = parseInt(trazeniNovacInput);
+
+  if (isNaN(trazeniNovac) || trazeniNovac < 0) {
+    showBootstrapAlert("Nevažeći iznos novca.");
+    return;
+  }
+
+  let trazeniPoljaInput = await bootstrapPrompt(`Igrač ${ponudjac.id}, unesi brojeve polja (razdvojene zarezom) koje tražiš od igrača ${primalac.id}? (Njegova polja: ${primalac.posedi.map(p => `${p} (${imenaPolja[p]})`).join(', ')})\nNema kuća na poljima koja se traže!`, "");
+  let trazeniPolja = trazeniPoljaInput.split(',').map(Number).filter(p => p > 0 && p < ukupnoPolja && primalac.posedi.includes(p));
+
+  for (const poljeIndex of trazeniPolja) {
+    if (kuce[poljeIndex] > 0) {
+      showBootstrapAlert(`Ne možeš tražiti polje ${imenaPolja[poljeIndex]} jer na njemu ima kuća.`);
+      return;
+    }
+  }
+
+  // Zamenjeno confirm sa bootstrapPrompt
+  let ponudaKartaIzlazakOdgovor = await bootstrapPrompt(
+    `Igrač ${ponudjac.id}, da li nudiš kartu za izlazak iz zatvora? (Imaš: ${ponudjac.imaKartuZaIzlazIzZatvora ? 'DA' : 'NE'})\nUnesi 'da' ili 'ne'.`,
+    "ne" // Podrazumevana vrednost
+  );
+  let ponudaKartaIzlazak = (ponudaKartaIzlazakOdgovor.toLowerCase() === 'da');
+
+  let trazenaKartaIzlazakOdgovor = await bootstrapPrompt(
+    `Igrač ${ponudjac.id}, da li tražiš kartu za izlazak iz zatvora od igrača ${primalac.id}? (On ima: ${primalac.imaKartuZaIzlazIzZatvora ? 'DA' : 'NE'})\nUnesi 'da' ili 'ne'.`,
+    "ne" // Podrazumevana vrednost
+  );
+  let trazenaKartaIzlazak = (trazenaKartaIzlazakOdgovor.toLowerCase() === 'da');
+
+  // Prikaz ponude primaocu
+  prikaziPonudu(ponudjac, primalac, ponudaNovac, ponudaPolja, trazeniNovac, trazeniPolja, ponudaKartaIzlazak, trazenaKartaIzlazak);
+}
+function prikaziPonudu(ponudjac, primalac, ponudaNovac, ponudaPolja, trazeniNovac, trazeniPolja, ponudaKartaIzlazak, trazenaKartaIzlazak) {
+    let poruka = `Igrač ${primalac.id}, igrač ${ponudjac.id} ti nudi dogovor:\n\n`;
+
+    if (ponudaNovac > 0) {
+        poruka += `- Nudi ti ${ponudaNovac}$ od svog novca.\n`;
+    }
+    if (ponudaPolja.length > 0) {
+        poruka += `- Nudi ti sledeća polja: ${ponudaPolja.map(p => `${p} (${imenaPolja[p]})`).join(', ')}.\n`;
+    }
+    if (ponudaKartaIzlazak) {
+        poruka += `- Nudi ti kartu za izlazak iz zatvora.\n`;
+    }
+
+    if (trazeniNovac > 0) {
+        poruka += `- Traži od tebe ${trazeniNovac}$ tvog novca.\n`;
+    }
+    if (trazeniPolja.length > 0) {
+        poruka += `- Traži od tebe sledeća polja: ${trazeniPolja.map(p => `${p} (${imenaPolja[p]})`).join(', ')}.\n`;
+    }
+    if (trazenaKartaIzlazak) {
+        poruka += `- Traži od tebe kartu za izlazak iz zatvora.\n`;
+    }
+
+    poruka += `\nDa li prihvataš ovu ponudu?`;
+
+    showBootstrapConfirm(poruka, (rezultat) => {
+        if (rezultat) {
+            obradiPrihvacenuPonudu(ponudjac, primalac, ponudaNovac, ponudaPolja, trazeniNovac, trazeniPolja, ponudaKartaIzlazak, trazenaKartaIzlazak);
+        } else {
+            showBootstrapAlert(`Igrač ${primalac.id} je odbio ponudu.`, true);
+        }
+    });
+}
+function obradiPrihvacenuPonudu(ponudjac, primalac, ponudaNovac, ponudaPolja, trazeniNovac, trazeniPolja, ponudaKartaIzlazak, trazenaKartaIzlazak) {
+    // Provera da li primalac ima dovoljno novca za traženu sumu
+    if (primalac.novac < trazeniNovac) {
+        showBootstrapAlert(`Igrač ${primalac.id} nema dovoljno novca da plati ${trazeniNovac}$ koje traži igrač ${ponudjac.id}. Ponuda poništena.`, true);
+        return;
+    }
+
+    // Provera da li ponudjac ima dovoljno novca za ponuđenu sumu (ovo bi trebalo da je već provereno, ali dobra praksa)
+    if (ponudjac.novac < ponudaNovac) {
+        showBootstrapAlert(`Igrač ${ponudjac.id} nema dovoljno novca da ponudi ${ponudaNovac}$ igraču ${primalac.id}. Ponuda poništena.`, true);
+        return;
+    }
+
+    // Provera da li primalac zaista poseduje polja koja se traže
+    for (const poljeIndex of trazeniPolja) {
+        if (!primalac.posedi.includes(poljeIndex)) {
+            showBootstrapAlert(`Igrač ${primalac.id} ne poseduje polje ${imenaPolja[poljeIndex]} koje je traženo. Ponuda poništena.`, true);
+            return;
+        }
+    }
+
+    // Provera da li ponudjac zaista poseduje polja koja se nude
+    for (const poljeIndex of ponudaPolja) {
+        if (!ponudjac.posedi.includes(poljeIndex)) {
+            showBootstrapAlert(`Igrač ${ponudjac.id} ne poseduje polje ${imenaPolja[poljeIndex]} koje je ponuđeno. Ponuda poništena.`, true);
+            return;
+        }
+    }
+
+    // Provera za karte za izlazak iz zatvora
+    if (ponudaKartaIzlazak && !ponudjac.imaKartuZaIzlazIzZatvora) {
+        showBootstrapAlert(`Igrač ${ponudjac.id} ne poseduje kartu za izlazak iz zatvora koju je ponudio. Ponuda poništena.`, true);
+        return;
+    }
+    if (trazenaKartaIzlazak && !primalac.imaKartuZaIzlazIzZatvora) {
+        showBootstrapAlert(`Igrač ${primalac.id} ne poseduje kartu za izlazak iz zatvora koju je tražio igrač ${ponudjac.id}. Ponuda poništena.`, true);
+        return;
+    }
+
+
+    // 1. Razmena novca
+    ponudjac.novac -= ponudaNovac;
+    primalac.novac += ponudaNovac;
+
+    ponudjac.novac += trazeniNovac;
+    primalac.novac -= trazeniNovac;
+
+    // 2. Razmena polja
+    // Ponudjac daje polja primaocu
+    ponudaPolja.forEach(poljeIndex => {
+        // Ukloni polje iz poseda ponudjaca
+        ponudjac.posedi = ponudjac.posedi.filter(p => p !== poljeIndex);
+        // Dodaj polje u posed primaoca
+        primalac.posedi.push(poljeIndex);
+        // Ažuriraj vlasnika polja
+        vlasnici[poljeIndex] = primalac.id;
+        // Resetuj hipoteke i kuće ako su bile na polju
+        hipoteke[poljeIndex] = false; // Polja se ne prenose pod hipotekom
+        kuce[poljeIndex] = 0; // Kuće se moraju prodati pre prenošenja
+    });
+
+    // Primalac daje polja ponudjacu
+    trazeniPolja.forEach(poljeIndex => {
+        // Ukloni polje iz poseda primaoca
+        primalac.posedi = primalac.posedi.filter(p => p !== poljeIndex);
+        // Dodaj polje u posed ponudjaca
+        ponudjac.posedi.push(poljeIndex);
+        // Ažuriraj vlasnika polja
+        vlasnici[poljeIndex] = ponudjac.id;
+        // Resetuj hipoteke i kuće ako su bile na polju
+        hipoteke[poljeIndex] = false;
+        kuce[poljeIndex] = 0;
+    });
+
+    // 3. Razmena karata za izlazak iz zatvora
+    if (ponudaKartaIzlazak) {
+        ponudjac.imaKartuZaIzlazIzZatvora = false;
+        primalac.imaKartuZaIzlazIzZatvora = true;
+    }
+    if (trazenaKartaIzlazak) {
+        primalac.imaKartuZaIzlazIzZatvora = false;
+        ponudjac.imaKartuZaIzlazIzZatvora = true;
+    }
+
+    showBootstrapAlert(`Dogovor uspešno sklopljen između igrača ${ponudjac.id} i ${primalac.id}!`);
+    azurirajPrikaz();
+    sacuvajStanje();
+}
 function sledeciIgrac() {
   document.getElementById('akcije').style.display = 'none';
   const igrac = figurice[trenutniIgrac];
