@@ -576,7 +576,7 @@ function pomeriIgracaAnimirano(koraci, dupli, callback) {
   }, 250);
   sacuvajStanje()
 }
-
+document.getElementById('resetBtn').addEventListener('click',resetGame);
 function nakonPomeranja(dupli) {
   const igrac = figurice[trenutniIgrac];
   const index = igrac.pozicija;

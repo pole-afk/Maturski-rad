@@ -1219,7 +1219,7 @@ document.getElementById('izgradi').addEventListener('click', () => {
   }
   sacuvajStanje()
 });
-
+document.getElementById('resetBtn').addEventListener('click',resetGame);
 document.getElementById('hipoteka').addEventListener('click', hipotekaPolje);
 document.getElementById('odglavi').addEventListener('click', odglaviPolje);
 

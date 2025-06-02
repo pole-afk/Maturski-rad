@@ -1538,3 +1538,4 @@ function resetGame() {
     }
   });
 }
+document.getElementById('resetBtn').addEventListener('click',resetGame);

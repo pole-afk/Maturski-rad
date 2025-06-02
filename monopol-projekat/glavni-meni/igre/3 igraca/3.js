@@ -545,7 +545,7 @@ function baciKockiceNakonZatvora(shouldRollDice = false) {
         sledeciIgrac();
     }
 }
-
+document.getElementById('resetBtn').addEventListener('click',resetGame);
 function pomeriIgracaAnimirano(koraci, dupli, callback) {
   const igrac = figurice[trenutniIgrac];
   let pomeranja = 0;
